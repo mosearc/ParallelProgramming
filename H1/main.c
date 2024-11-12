@@ -19,8 +19,8 @@
 void init_mat(int n, double(* mat)[n] ) {
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-            //mat[i][j] = rand() / (double) RAND_MAX;
-            mat[i][j] = 42;
+            mat[i][j] = rand() / (double) RAND_MAX;
+            //mat[i][j] = 42;
         }
     }
 }
@@ -34,15 +34,6 @@ int checkSym(int n, double (*mat)[n]) {
 }
 
 int checkSymImp(int n, double (*mat)[n]) {  // see cache-oblivous alg or tiling
-//     // strided access
-//     for (int r = 1; r < n; ++r)
-// #pragma simd
-//         for (int c = r; c < n; ++c)
-//             if (mat[r][c] != mat[c][r]) return EXIT_FAILURE;
-//
-//     return EXIT_SUCCESS;
-
-
     for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
         for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
             // Trasponi il blocco (i, j)
@@ -86,21 +77,7 @@ void matTranspose(int n, double (*mat)[n], double (*tam)[n]) {
         for (int c = 0; c < n; ++c) tam[c][r] = mat[r][c];
 }
 
-void matTransposeImp(int n, double (*mat)[n], int (*tam)[n]) {  // see cache-oblivous alg or tiling
-//     if (checkSym(n, mat)) {
-//         // sequential access
-//         for (int r = 0; r < n; ++r) {
-// #pragma simd
-//             for (int c = 0; c < n; ++c) tam[r][c] = mat[r][c];
-//         }
-//     } else {
-//         // strided access
-//         for (int r = 0; r < n; ++r) {
-// #pragma simd
-//             for (int c = 0; c < n; ++c) tam[c][r] = mat[r][c];
-//         }
-//     }
-
+void matTransposeImp(int n, double (*mat)[n], double (*tam)[n]) {  // see cache-oblivous alg or tiling
     for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
         for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
             // Trasponi il blocco (i, j)
@@ -220,12 +197,12 @@ int main() {
     init_mat(n, mat); //init it
 
     //print it
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            printf("[%f]", mat[i][j]);
-        }
-        printf("\n");
-    }
+    // for (int i = 0; i < n; ++i) {
+    //     for (int j = 0; j < n; ++j) {
+    //         printf("[%f]", mat[i][j]);
+    //     }
+    //     printf("\n");
+    // }
 
     // fprintf(f, "\nMATRIX\n");
     // print_mat(f, n, mat);
@@ -240,11 +217,17 @@ int main() {
 
     // check simmetry
     t = clock();
-    int r = checkSym(n, mat);
+    int r = checkSymImp(n, mat);
     t = clock() - t;
     checkSymTimeImp = ((double)t) / CLOCKS_PER_SEC;
 
     if(res == EXIT_SUCCESS) {
+        printf( "\n\n è sym\n");
+    }else {
+        printf("\n\bnon è sym\n");
+    }
+
+    if(r == EXIT_SUCCESS) {
         printf( "\n\n è sym\n");
     }else {
         printf("\n\bnon è sym\n");
@@ -256,19 +239,29 @@ int main() {
     t = clock() - t;
     matTransposeTime = ((double)t) / CLOCKS_PER_SEC;
 
+    // printf("\n\n");
+    // for (int i = 0; i < n; ++i) {
+    //     for (int j = 0; j < n; ++j) {
+    //         printf("[%f]", tam[i][j]);
+    //     }
+    //     printf("\n");
+    // }
+    //
+    // printf("\n ----- \n");
+
     t = clock();
     matTransposeImp(n, mat, tam);
     t = clock() - t;
     matTransposeTimeImp = ((double)t) / CLOCKS_PER_SEC;
 
-    //print it transp
-    printf("\n\n");
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            printf("[%f]", tam[i][j]);
-        }
-        printf("\n");
-    }
+    // //print it transp
+    // printf("\n\n");
+    // for (int i = 0; i < n; ++i) {
+    //     for (int j = 0; j < n; ++j) {
+    //         printf("[%f]", tam[i][j]);
+    //     }
+    //     printf("\n");
+    // }
 
     // fprintf(f, "\nTRANSPOSED\n");
     // print_mat(f, n, tam);
@@ -277,7 +270,7 @@ int main() {
     // fprintf(f, "matTranpose [s]: %-10.10f\n", matTransposeTime);
 
     printf( "\ncheckSym    [s]: %-10.10f\n", checkSymTime);
-    printf( "checkSymImp [s]: %-10.10f\n", matTransposeTimeImp);
+    printf( "checkSymImp [s]: %-10.10f\n", checkSymTimeImp);
     printf( "matTranpose [s]: %-10.10f\n", matTransposeTime);
     printf( "matTranposeImp [s]: %-10.10f\n", matTransposeTimeImp);
 

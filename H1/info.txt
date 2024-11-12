@@ -1,0 +1,15 @@
+
+
+2933*10^6*2*8 * 6 /10^9 = 281.568 GB/s Bmem (per socket bandwidth)
+24*2.3*32 = 1766.4 GFLOPS = 1.77 TFlOPS (Bmath) (per socket bandwidth)
+
+reference:
+https://leimao.github.io/blog/Math-Bound-VS-Memory-Bound-Operations/ -> calcolo bound
+https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html -> prefetch
+https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html -> flag di ottimizzazione
+https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2024-2/prefetch-noprefetch.html -> pragma prefetch
+https://ark.intel.com/content/www/us/en/ark/products/193951/intel-xeon-gold-6252n-processor-35-75m-cache-2-30-ghz.html -> info processori cluster
+https://en.wikipedia.org/wiki/DDR_SDRAM -> info ram del cluster
+https://docs.google.com/spreadsheets/d/1-n4q-nFSHiIugUh_PSmsFS1VwP_ZUitkCSyDvz2As0E/edit?gid=1254941127#gid=1254941127 -> info processori cluster
+https://www.cpu-world.com/CPUs/Xeon/Intel-Xeon%206252N.html -> info processori cluster
+https://www.overleaf.com/latex/templates/ieee-conference-template/grfzhhncsfqn -> ieee template
