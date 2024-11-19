@@ -1,7 +1,27 @@
 
+gcc-9.1.0 -O2  -ftree-loop-distribution -floop-interchange -floop-unroll-and-jam -falign-loops -o r main.c
 
 2933*10^6*2*8 * 6 /10^9 = 281.568 GB/s Bmem (per socket bandwidth)
 24*2.3*32 = 1766.4 GFLOPS = 1.77 TFlOPS (Bmath) (per socket bandwidth)
+
+(cahce cluster/float dimension)^0.5 dato che i blocchi son quadrati : (32K/4)^0.5 = 90 (per blocchi cache)
+
+----------
+
+gcc-9.1.0 -O2 -march=native -faggressive-loop-optimizations -floop-interchange -ftree-vectorize -fprefetch-loop-arrays -falign-loops -floop-unroll-and-jam -ftree-loop-distribution -o runFlags main.c
+prova anche con -ftree-loop-im -fipa-pta e vedi se migliora
+
+gcc-9.1.0 -O2  -ftree-loop-distribution -floop-interchange -floop-unroll-and-jam -falign-loops -o r main.c -> top
+
+-faggressive-loop-optimizations -> the same approx
+-fprefetch-loop-arrays -> peggiora
+-ftree-vectorize -> peggiora leggermente
+-ftree-loop-im -fipa-pta -> peggiora leggermente
+
+
+
+
+
 
 reference:
 https://leimao.github.io/blog/Math-Bound-VS-Memory-Bound-Operations/ -> calcolo bound
@@ -13,7 +33,8 @@ https://en.wikipedia.org/wiki/DDR_SDRAM -> info ram del cluster
 https://docs.google.com/spreadsheets/d/1-n4q-nFSHiIugUh_PSmsFS1VwP_ZUitkCSyDvz2As0E/edit?gid=1254941127#gid=1254941127 -> info processori cluster
 https://www.cpu-world.com/CPUs/Xeon/Intel-Xeon%206252N.html -> info processori cluster
 https://www.overleaf.com/latex/templates/ieee-conference-template/grfzhhncsfqn -> ieee template
-https://github.com/jean553/c-simd-avx2-example -> avx (+ i 2 link sotto)
 https://www.delftstack.com/howto/c/gettimeofday-in-c/ -> get time of day
 https://stackoverflow.com/questions/8107965/concept-of-block-size-in-a-cache -> blocking
 https://www.cita.utoronto.ca/~merz/intel_c10b/main_cls/mergedProjects/optaps_cls/common/optaps_perf_optstrats.htm
+https://www.ibm.com/docs/en/zos/3.1.0?topic=category-optimization-tuning#pragmas_optzn -> pragmas
+

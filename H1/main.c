@@ -5,7 +5,7 @@
 #include <sys/time.h>
 
 #define OUTPUT_FILE "output.txt"
-#define BLOCK_SIZE_CACHE 64 //trova quello giusto per il cluster - (cahce cluster/float)^0.5 dato che i blocchi son quadrati : (32K/4)^0.5 = 90
+#define BLOCK_SIZE_CACHE 64 //trova quello giusto per il cluster - (cahce cluster/float dimension)^0.5 dato che i blocchi son quadrati : (32K/4)^0.5 = 90
 #define BLOCK_SIZE_SMID 4
 
 // void print_mat(FILE* f, int n, double (*mat)[n]) {
@@ -96,79 +96,32 @@ void matTranspose(int n, float (*mat)[n], float (*tam)[n]) {
 
 #pragma isolated_call(matTransposeImp)
 void matTransposeImp(int n, float (*mat)[n], float (*tam)[n]) {  // see cache-oblivous alg or tiling
-//     for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
-//         for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
-//             // Trasponi il blocco (i, j)
-//             for (int k = i; k < i + BLOCK_SIZE_CACHE && k < n; ++k) {
-// #pragma omp simd
-//                 for (int l = j; l < j + BLOCK_SIZE_CACHE && l < n; ++l) {
-// #pragma execution_frequency(very_high)
-//
-//                     // Prefetcha una riga successiva di mat, ad esempio 4 iterazioni in avanti
-//                     if (l + 4 < n) {
-//                         __builtin_prefetch(&mat[k][l + 4], 0, 1);  // Prefetch per lettura
-//                     }
-//                     // Prefetcha una posizione di tam per la scrittura
-//                     if (k + 4 < n) {
-//                         __builtin_prefetch(&tam[l][k + 4], 1, 1);  // Prefetch per scrittura
-//                     }
-//
-//                     //La distanza tra il dato prefetchato e l'elemento corrente (l + 4 e k + 4 in questo esempio) può variare.
-//                     //Distanze troppo grandi rischiano di sostituire in cache i dati ancora utili,
-//                     //mentre distanze troppo corte potrebbero non prefetchare con sufficiente anticipo
-//                     //in matrici piccole potrebbe addirittua peggiorare
-//                     tam[l][k] = mat[k][l];
-//                 }
-//             }
-//         }
-//     }
-
-    /*
-
-//gcc -O3 -mavx -o transpose_avx matrix_transpose.c OCCHIO CHE È TUTTO CON I DOUBLE
     for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
         for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
-            // Trasponi un blocco 4x4 usando AVX
-            for (int k = i; k < i + BLOCK_SIZE_CACHE&& k < n; k += 4) {
-                for (int l = j; l < j + BLOCK_SIZE_CACHE && l < n; l += 4) {
+            // Trasponi il blocco (i, j)
+            for (int k = i; k < i + BLOCK_SIZE_CACHE && k < n; ++k) {
+#pragma omp simd
+                for (int l = j; l < j + BLOCK_SIZE_CACHE && l < n; ++l) {
+#pragma execution_frequency(very_high)
 
+                    // Prefetcha una riga successiva di mat, ad esempio 4 iterazioni in avanti
+                    if (l + 4 < n) {
+                        __builtin_prefetch(&mat[k][l + 4], 0, 1);  // Prefetch per lettura
+                    }
+                    // Prefetcha una posizione di tam per la scrittura
+                    if (k + 4 < n) {
+                        __builtin_prefetch(&tam[l][k + 4], 1, 1);  // Prefetch per scrittura
+                    }
 
-                    //prefetch della prossima riga del blocco
-                    __builtin_prefetch(&mat[k + 4][l], 0, 1);
-                    __builtin_prefetch(&mat[k][l + 4], 0, 1);
-                    __builtin_prefetch(&tam[l][k], 1, 1);
-
-
-
-                    // Carica blocchi da 4 double alla volta
-                    __m256d row0 = _mm256_loadu_pd(&mat[k][l]);
-                    __m256d row1 = _mm256_loadu_pd(&mat[k+1][l]);
-                    __m256d row2 = _mm256_loadu_pd(&mat[k+2][l]);
-                    __m256d row3 = _mm256_loadu_pd(&mat[k+3][l]);
-
-                    // Trasposizione 4x4
-                    __m256d t0 = _mm256_unpacklo_pd(row0, row1);
-                    __m256d t1 = _mm256_unpackhi_pd(row0, row1);
-                    __m256d t2 = _mm256_unpacklo_pd(row2, row3);
-                    __m256d t3 = _mm256_unpackhi_pd(row2, row3);
-
-                    row0 = _mm256_permute2f128_pd(t0, t2, 0x20);
-                    row1 = _mm256_permute2f128_pd(t1, t3, 0x20);
-                    row2 = _mm256_permute2f128_pd(t0, t2, 0x31);
-                    row3 = _mm256_permute2f128_pd(t1, t3, 0x31);
-
-                    // Memorizza il blocco trasposto
-                    _mm256_storeu_pd(&tam[l][k], row0);
-                    _mm256_storeu_pd(&tam[l+1][k], row1);
-                    _mm256_storeu_pd(&tam[l+2][k], row2);
-                    _mm256_storeu_pd(&tam[l+3][k], row3);
+                    //La distanza tra il dato prefetchato e l'elemento corrente (l + 4 e k + 4 in questo esempio) può variare.
+                    //Distanze troppo grandi rischiano di sostituire in cache i dati ancora utili,
+                    //mentre distanze troppo corte potrebbero non prefetchare con sufficiente anticipo
+                    //in matrici piccole potrebbe addirittua peggiorare
+                    tam[l][k] = mat[k][l];
                 }
             }
         }
     }
-
-    */
-
 }
 
 void matTransposeOMP(int n, float (*mat)[n], float (*tam)[n]) {
@@ -273,6 +226,8 @@ int main() {
     gettimeofday(&end, NULL);
     //matTransposeTime = ((double)t) / CLOCKS_PER_SEC;
     matTransposeTime = time_diff(&start, &end);
+
+    check(n, tam, tamImp);
 
     // printf("\n\n");
     // for (int i = 0; i < n; ++i) {
