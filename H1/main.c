@@ -5,7 +5,7 @@
 #include <sys/time.h>
 
 #define OUTPUT_FILE "output.txt"
-#define BLOCK_SIZE_CACHE 64 //trova quello giusto per il cluster
+#define BLOCK_SIZE_CACHE 64 //trova quello giusto per il cluster - (cahce cluster/float)^0.5 dato che i blocchi son quadrati : (32K/4)^0.5 = 90
 #define BLOCK_SIZE_SMID 4
 
 // void print_mat(FILE* f, int n, double (*mat)[n]) {
@@ -41,6 +41,7 @@ void init_mat(int n, float(* mat)[n] ) {
     }
 }
 
+#pragma option_override(checkSym, "opt(level, 0)")
 int checkSym(int n, float(*mat)[n]) {
     for (int r = 1; r < n; ++r)
         for (int c = r; c < n; ++c)
@@ -49,21 +50,21 @@ int checkSym(int n, float(*mat)[n]) {
     return EXIT_SUCCESS;
 }
 
+#pragma isolated_call(checkSymImp)
 int checkSymImp(int n, float(*mat)[n]) {  // see cache-oblivous alg or tiling
     for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
         for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
             // Trasponi il blocco (i, j)
             for (int k = i; k < i + BLOCK_SIZE_CACHE && k < n; ++k) {
+//#pragma ivdep -> peggiora
+//#pragma omp simd -> qui non ha senso
+#pragma unroll
                 for (int l = j; l < j + BLOCK_SIZE_CACHE && l < n; ++l) {
 
-                    // // Prefetcha una riga successiva di mat, ad esempio 4 iterazioni in avanti
-                    // if (l + 4 < n) {
-                    //     __builtin_prefetch(&mat[k][l + 4], 0, 1);  // Prefetch per lettura
-                    // }
-                    // // Prefetcha una posizione di tam per la scrittura
-                    // if (k + 4 < n) {
-                    //     __builtin_prefetch(&tam[l][k + 4], 1, 1);  // Prefetch per scrittura
-                    // }
+                    // Prefetcha una riga successiva di mat, ad esempio 4 iterazioni in avanti
+                    if (l + 4 < n) {
+                        __builtin_prefetch(&mat[k][l + 4], 0, 1);  // Prefetch per lettura
+                    }
 
                     //La distanza tra il dato prefetchato e l'elemento corrente (l + 4 e k + 4 in questo esempio) può variare.
                     //Distanze troppo grandi rischiano di sostituire in cache i dati ancora utili,
@@ -87,38 +88,40 @@ int checkSymOMP(int n, float (*mat)[n]) {
     return EXIT_SUCCESS;
 }
 
-
+#pragma option_override(matTranspose, "opt(level, 0)")
 void matTranspose(int n, float (*mat)[n], float (*tam)[n]) {
     for (int r = 0; r < n; ++r)
         for (int c = 0; c < n; ++c) tam[c][r] = mat[r][c];
 }
 
+#pragma isolated_call(matTransposeImp)
 void matTransposeImp(int n, float (*mat)[n], float (*tam)[n]) {  // see cache-oblivous alg or tiling
-    for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
-        for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
-            // Trasponi il blocco (i, j)
-            for (int k = i; k < i + BLOCK_SIZE_CACHE && k < n; ++k) {
-                for (int l = j; l < j + BLOCK_SIZE_CACHE && l < n; ++l) {
-
-                    // // Prefetcha una riga successiva di mat, ad esempio 4 iterazioni in avanti
-                    // if (l + 4 < n) {
-                    //     __builtin_prefetch(&mat[k][l + 4], 0, 1);  // Prefetch per lettura
-                    // }
-                    // // Prefetcha una posizione di tam per la scrittura
-                    // if (k + 4 < n) {
-                    //     __builtin_prefetch(&tam[l][k + 4], 1, 1);  // Prefetch per scrittura
-                    // }
-
-                    //La distanza tra il dato prefetchato e l'elemento corrente (l + 4 e k + 4 in questo esempio) può variare.
-                    //Distanze troppo grandi rischiano di sostituire in cache i dati ancora utili,
-                    //mentre distanze troppo corte potrebbero non prefetchare con sufficiente anticipo
-                    //in matrici piccole potrebbe addirittua peggiorare
-
-                    tam[l][k] = mat[k][l];
-                }
-            }
-        }
-    }
+//     for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
+//         for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
+//             // Trasponi il blocco (i, j)
+//             for (int k = i; k < i + BLOCK_SIZE_CACHE && k < n; ++k) {
+// #pragma omp simd
+//                 for (int l = j; l < j + BLOCK_SIZE_CACHE && l < n; ++l) {
+// #pragma execution_frequency(very_high)
+//
+//                     // Prefetcha una riga successiva di mat, ad esempio 4 iterazioni in avanti
+//                     if (l + 4 < n) {
+//                         __builtin_prefetch(&mat[k][l + 4], 0, 1);  // Prefetch per lettura
+//                     }
+//                     // Prefetcha una posizione di tam per la scrittura
+//                     if (k + 4 < n) {
+//                         __builtin_prefetch(&tam[l][k + 4], 1, 1);  // Prefetch per scrittura
+//                     }
+//
+//                     //La distanza tra il dato prefetchato e l'elemento corrente (l + 4 e k + 4 in questo esempio) può variare.
+//                     //Distanze troppo grandi rischiano di sostituire in cache i dati ancora utili,
+//                     //mentre distanze troppo corte potrebbero non prefetchare con sufficiente anticipo
+//                     //in matrici piccole potrebbe addirittua peggiorare
+//                     tam[l][k] = mat[k][l];
+//                 }
+//             }
+//         }
+//     }
 
     /*
 
@@ -243,6 +246,7 @@ int main() {
     // check simmetry
     //t = clock();
     gettimeofday(&start, NULL);
+#pragma inline
     int r = checkSymImp(n, mat);
     //t = clock() - t;
     gettimeofday(&end, NULL);
@@ -282,6 +286,7 @@ int main() {
 
     //t = clock();
     gettimeofday(&start, NULL);
+#pragma inline
     matTransposeImp(n, mat, tamImp);
     //t = clock() - t;
     gettimeofday(&end, NULL);

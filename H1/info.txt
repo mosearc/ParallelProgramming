@@ -15,3 +15,5 @@ https://www.cpu-world.com/CPUs/Xeon/Intel-Xeon%206252N.html -> info processori c
 https://www.overleaf.com/latex/templates/ieee-conference-template/grfzhhncsfqn -> ieee template
 https://github.com/jean553/c-simd-avx2-example -> avx (+ i 2 link sotto)
 https://www.delftstack.com/howto/c/gettimeofday-in-c/ -> get time of day
+https://stackoverflow.com/questions/8107965/concept-of-block-size-in-a-cache -> blocking
+https://www.cita.utoronto.ca/~merz/intel_c10b/main_cls/mergedProjects/optaps_cls/common/optaps_perf_optstrats.htm
