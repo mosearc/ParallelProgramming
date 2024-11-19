@@ -6,6 +6,9 @@ gcc-9.1.0 -O2  -ftree-loop-distribution -floop-interchange -floop-unroll-and-jam
 
 (cahce cluster/float dimension)^0.5 dato che i blocchi son quadrati : (32K/4)^0.5 = 90 (per blocchi cache)
 
+openMP 4.5 on gcc 9.1
+openMP 3.1 on gcc 4.8
+
 ----------
 
 gcc-9.1.0 -O2 -march=native -faggressive-loop-optimizations -floop-interchange -ftree-vectorize -fprefetch-loop-arrays -falign-loops -floop-unroll-and-jam -ftree-loop-distribution -o runFlags main.c
@@ -19,7 +22,11 @@ gcc-9.1.0 -O2  -ftree-loop-distribution -floop-interchange -floop-unroll-and-jam
 -ftree-loop-im -fipa-pta -> peggiora leggermente
 
 
-
+Possibili problemi:
+Overhead di creazione dei thread: Creare troppi thread rispetto al lavoro disponibile può peggiorare le prestazioni.
+Falsi sharing: Thread accedono a dati vicini nella memoria, causando conflitti di cache. -> soluzione: si può fare del blocking
+Nn check sym puo esserci casino a causa delle sezioni critiche
+Nella trasposizione chill ogni thread fa lo stesso lavoro e non c'è bisogno di sezioni critiche xche scrivono in celle indipendenti
 
 
 
@@ -37,4 +44,5 @@ https://www.delftstack.com/howto/c/gettimeofday-in-c/ -> get time of day
 https://stackoverflow.com/questions/8107965/concept-of-block-size-in-a-cache -> blocking
 https://www.cita.utoronto.ca/~merz/intel_c10b/main_cls/mergedProjects/optaps_cls/common/optaps_perf_optstrats.htm
 https://www.ibm.com/docs/en/zos/3.1.0?topic=category-optimization-tuning#pragmas_optzn -> pragmas
+https://www.openmp.org/spec-html/5.0/openmp.html -> openMP api
 

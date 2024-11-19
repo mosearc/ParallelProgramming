@@ -79,12 +79,40 @@ int checkSymImp(int n, float(*mat)[n]) {  // see cache-oblivous alg or tiling
     return EXIT_SUCCESS;
 }
 
-int checkSymOMP(int n, float (*mat)[n]) {
+int checkSymOMP(int n, float (*mat)[n]) { //casino avendo molti thread
 #pragma omp parallel for collapse(2)
-    for (int r = 1; r < n; ++r)
-        for (int c = r; c < n; ++c)
-            if (mat[r][c] != mat[c][r]) return EXIT_FAILURE;
+    for (int r = 1; r < n; ++r) {
+        for (int c = r; c < n; ++c) {
+            if (mat[r][c] != mat[c][r]) {
+                return EXIT_FAILURE;
+#pragma omp cancel for //only for openMP 4.0+
+            }
+#pragma omp cancellation point for //only for openMP 4.0+
+        }
+    }
+    return EXIT_SUCCESS;
+}
 
+int checkSymOMPF(int n, float (*mat)[n]) {
+    int flag = 0;
+#pragma omp parallel for collapse(2)
+    for (int r = 1; r < n; ++r) {
+        for (int c = r; c < n; ++c) {
+#pragma omp flush(flag)
+#pragma omp atomic read
+            int temp_flag = flag;
+            if(temp_flag) {
+                return EXIT_FAILURE;
+            }
+            if (mat[r][c] != mat[c][r]) {
+#pragma omp flush
+#pragma omp atomic write
+                flag = 1;
+#pragma omp flush(flag)
+                return EXIT_FAILURE;
+            }
+        }
+    }
     return EXIT_SUCCESS;
 }
 
@@ -125,10 +153,14 @@ void matTransposeImp(int n, float (*mat)[n], float (*tam)[n]) {  // see cache-ob
 }
 
 void matTransposeOMP(int n, float (*mat)[n], float (*tam)[n]) {
-#pragma omp parallel for collapse(2)
-    for (int r = 0; r < n; ++r)
-        for (int c = 0; c < n; ++c) tam[c][r] = mat[r][c];
+#pragma omp parallel for collapse(2)//schedule(static, 2)
+    for (int r = 0; r < n; ++r) {
+        for (int c = 0; c < n; ++c) {
+            tam[c][r] = mat[r][c];
+        }
+    }
 }
+
 
 
 int main() {
