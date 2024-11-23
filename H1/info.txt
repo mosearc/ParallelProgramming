@@ -6,15 +6,16 @@ gcc-9.1.0 -O2  -ftree-loop-distribution -floop-interchange -floop-unroll-and-jam
 
 (cahce cluster/float dimension)^0.5 dato che i blocchi son quadrati : (32K/4)^0.5 = 90 (per blocchi cache)
 
-openMP 4.5 on gcc 9.1
-openMP 3.1 on gcc 4.8
+openMP 3.1 on gcc 4.8 -> questa è presente nel cluster :(
+
+fare la trasposizione con metà manderebbe a puttane la cache per gli accessi doppi
 
 ----------
 
 gcc-9.1.0 -O2 -march=native -faggressive-loop-optimizations -floop-interchange -ftree-vectorize -fprefetch-loop-arrays -falign-loops -floop-unroll-and-jam -ftree-loop-distribution -o runFlags main.c
 prova anche con -ftree-loop-im -fipa-pta e vedi se migliora
 
-gcc-9.1.0 -O2  -ftree-loop-distribution -floop-interchange -floop-unroll-and-jam -falign-loops -o r main.c -> top
+gcc-9.1.0 -O2 -ftree-loop-distribution -floop-interchange -floop-unroll-and-jam -falign-loops -o run main.c -> top
 
 -faggressive-loop-optimizations -> the same approx
 -fprefetch-loop-arrays -> peggiora
@@ -25,8 +26,9 @@ gcc-9.1.0 -O2  -ftree-loop-distribution -floop-interchange -floop-unroll-and-jam
 Possibili problemi:
 Overhead di creazione dei thread: Creare troppi thread rispetto al lavoro disponibile può peggiorare le prestazioni.
 Falsi sharing: Thread accedono a dati vicini nella memoria, causando conflitti di cache. -> soluzione: si può fare del blocking
-Nn check sym puo esserci casino a causa delle sezioni critiche
+Nn check sym puo esserci casino a causa delle sezioni critiche -> problemi xche c'è solo openMP 3.1
 Nella trasposizione chill ogni thread fa lo stesso lavoro e non c'è bisogno di sezioni critiche xche scrivono in celle indipendenti
+
 
 
 
@@ -45,4 +47,7 @@ https://stackoverflow.com/questions/8107965/concept-of-block-size-in-a-cache -> 
 https://www.cita.utoronto.ca/~merz/intel_c10b/main_cls/mergedProjects/optaps_cls/common/optaps_perf_optstrats.htm
 https://www.ibm.com/docs/en/zos/3.1.0?topic=category-optimization-tuning#pragmas_optzn -> pragmas
 https://www.openmp.org/spec-html/5.0/openmp.html -> openMP api
+http://jakascorner.com/blog/2016/08/omp-cancel.html -> opm cancellation
+https://www.openmp.org/spec-html/5.0/openmpsu42.html#x65-1390002.9.3 -> aligned e openMP
+https://www.geeksforgeeks.org/data-structure-alignment-how-data-is-arranged-and-accessed-in-computer-memory/ -> aligmnet of data
 
