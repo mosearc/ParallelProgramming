@@ -49,5 +49,6 @@ https://www.ibm.com/docs/en/zos/3.1.0?topic=category-optimization-tuning#pragmas
 https://www.openmp.org/spec-html/5.0/openmp.html -> openMP api
 http://jakascorner.com/blog/2016/08/omp-cancel.html -> opm cancellation
 https://www.openmp.org/spec-html/5.0/openmpsu42.html#x65-1390002.9.3 -> aligned e openMP
+https://www.openmp.org/spec-html/5.0/openmp.html
 https://www.geeksforgeeks.org/data-structure-alignment-how-data-is-arranged-and-accessed-in-computer-memory/ -> aligmnet of data
 

@@ -31,18 +31,46 @@ void init_mat(int n, float(* mat)[n] ) {
     }
 }
 
-int checkSymOMP(int n, float (*mat)[n]) { //casino avendo molti thread
+int checkSymOMP(int n, float (*mat)[n]) { //casino avendo molti thread a causa di atomic
     int ret_val = 1;
-#pragma omp parallel for collapse(2) schedule(static)
-    for (int r = 0; r < n; ++r) {
-      for (int c = 0; c < n; ++c) {
-        if(mat[r][c] != mat[c][r]){
-#pragma omp atomic write
-          ret_val = 0;
+
+#pragma omp parallel proc_bind(close)
+    {
+        int local_ret_val = 1;
+
+#pragma omp for collapse(2) schedule(guided) nowait
+        for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
+            for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
+                for (int k = i; k < i + BLOCK_SIZE_CACHE; ++k) {
+#pragma omp prefetch
+                    for (int l = j; l < j + BLOCK_SIZE_CACHE && l < n; ++l) {
+                        if (mat[k][l] != mat[l][k]) {
+                            local_ret_val = 0;
+                        }
+                    }
+                }
+            }
         }
-      }
+
+        if (!local_ret_val) {
+#pragma omp atomic write
+            ret_val = 0;
+        }
     }
+
     return ret_val;
+
+//    int ret_val = 1;
+//#pragma omp parallel for collapse(2) schedule(static)
+//    for (int r = 0; r < n; ++r) {
+//      for (int c = 0; c < n; ++c) {
+//        if(mat[r][c] != mat[c][r]){
+//#pragma omp atomic write
+//          ret_val = 0;
+//        }
+//      }
+//    }
+//    return ret_val;
 
 //    int flag = 1;
 //    int temp_flag;
@@ -69,13 +97,31 @@ int checkSymOMP(int n, float (*mat)[n]) { //casino avendo molti thread
 }
 
 void matTransposeOMP(int n, float (*mat)[n], float (*tam)[n]) {
-//#pragma omp parallel for collapse(2) schedule(dynamic)
-#pragma omp parallel for simd collapse(2) schedule(static) aligned(mat, tam : 16)
-    for (int r = 0; r < n; ++r) {
-        for (int c = 0; c < n; ++c) {
-            tam[c][r] = mat[r][c];
+
+#pragma omp parallel proc_bind(close)
+    {
+#pragma omp for collapse(2) schedule(static) nowait aligned(mat,tam:16)
+        for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
+            for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
+#pragma omp simd aligned(mat,tam:16)
+                for (int k = i; k < i + BLOCK_SIZE_CACHE && k < n; ++k) {
+#pragma omp prefetch
+                    for (int l = j; l < j + BLOCK_SIZE_CACHE && l < n; ++l) {
+                        tam[l][k] = mat[k][l];
+                    }
+                }
+            }
         }
     }
+
+//#pragma omp parallel for collapse(2) schedule(dynamic)
+//#pragma omp parallel for simd collapse(2) schedule(static) aligned(mat, tam : 16)
+//    for (int r = 0; r < n; ++r) {
+//        for (int c = 0; c < n; ++c) {
+//            tam[c][r] = mat[r][c];
+//        }
+//    }
+
 }
 
 
