@@ -53,7 +53,7 @@ void matTranspose(int n, float (*mat)[n], float (*tam)[n]) {
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-      printf("Uso: %s <numero>\n", argv[0]);
+      printf("Uso: %s <matrix dim>\n", argv[0]);
       return 1;
     }
     int n = atoi(argv[1]);
@@ -98,18 +98,19 @@ int main(int argc, char *argv[]) {
     gettimeofday(&end, NULL);
     checkSymTime = time_diff(&start, &end);
 
-//    if(res) {
-//        printf( "\n è sym\n");
-//    }else {
-//        printf("\nnon è sym\n");
-//    }
+    if(res) {
+        printf( "\n is symmetric\n");
+    }else {
+        printf("\n isn't symmetirc\n");
+    }
 
     // compute transpose
     gettimeofday(&start, NULL);
     matTranspose(n, mat, tam);
     gettimeofday(&end, NULL);
     matTransposeTime = time_diff(&start, &end);
-    //check(n, mat, tam);
+
+    check(n, mat, tam);
 
     printf("\nN: %d\n", n);
     printf( "checkSym    [s]: %f\n", checkSymTime);

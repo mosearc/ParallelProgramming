@@ -25,8 +25,7 @@ gcc-9.1.0 -O2 -ftree-loop-distribution -floop-interchange -floop-unroll-and-jam 
 
 Possibili problemi:
 Overhead di creazione dei thread: Creare troppi thread rispetto al lavoro disponibile può peggiorare le prestazioni.
-Falsi sharing: Thread accedono a dati vicini nella memoria, causando conflitti di cache. -> soluzione: si può fare del blocking
-Nn check sym puo esserci casino a causa delle sezioni critiche -> problemi xche c'è solo openMP 3.1
+Nn check sym puo esserci casino a causa delle sezioni critiche -> problemi xche cancel non c'è in openMP 3.1
 Nella trasposizione chill ogni thread fa lo stesso lavoro e non c'è bisogno di sezioni critiche xche scrivono in celle indipendenti
 
 

@@ -33,7 +33,6 @@ void init_mat(int n, float(* mat)[n] ) {
 
 int checkSymOMP(int n, float (*mat)[n]) { //casino avendo molti thread a causa di atomic
     int ret_val = 1;
-
 #pragma omp parallel proc_bind(close)
     {
         int local_ret_val = 1;
@@ -41,7 +40,7 @@ int checkSymOMP(int n, float (*mat)[n]) { //casino avendo molti thread a causa d
 #pragma omp for collapse(2) schedule(guided) nowait
         for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
             for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
-                for (int k = i; k < i + BLOCK_SIZE_CACHE; ++k) {
+                for (int k = i; k < i + BLOCK_SIZE_CACHE && k < n; ++k) {
 #pragma omp prefetch
                     for (int l = j; l < j + BLOCK_SIZE_CACHE && l < n; ++l) {
                         if (mat[k][l] != mat[l][k]) {
@@ -100,13 +99,17 @@ void matTransposeOMP(int n, float (*mat)[n], float (*tam)[n]) {
 
 #pragma omp parallel proc_bind(close)
     {
-#pragma omp for collapse(2) schedule(static) nowait aligned(mat,tam:16)
+#pragma omp for collapse(2) schedule(static) nowait
         for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
             for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
+
+                int k_end = (i + BLOCK_SIZE_CACHE < n) ? i + BLOCK_SIZE_CACHE : n;
+                int l_end = (j + BLOCK_SIZE_CACHE < n) ? j + BLOCK_SIZE_CACHE : n;
+
 #pragma omp simd aligned(mat,tam:16)
-                for (int k = i; k < i + BLOCK_SIZE_CACHE && k < n; ++k) {
+                for (int k = i; k < k_end; ++k) {
 #pragma omp prefetch
-                    for (int l = j; l < j + BLOCK_SIZE_CACHE && l < n; ++l) {
+                    for (int l = j; l < l_end; ++l) {
                         tam[l][k] = mat[k][l];
                     }
                 }
@@ -128,7 +131,7 @@ void matTransposeOMP(int n, float (*mat)[n], float (*tam)[n]) {
 
 int main(int argc, char *argv[]) {
       if (argc != 3) {
-        printf("Uso: %s <numero> <threads>\n", argv[0]);
+        printf("Uso: %s <matrix dim> <#threads>\n", argv[0]);
         return 1;
     }
     int n = atoi(argv[1]);
@@ -153,9 +156,6 @@ int main(int argc, char *argv[]) {
     float(*tam)[n];
     tam = (float(*)[n])malloc(sizeof(*tam) * n);
 
-    float(*tamImp)[n];
-    tamImp = (float(*)[n])malloc(sizeof(*tamImp) * n);
-
     if (!mat || !tam) {
         printf( "failed to allocate mat and/or tam\n");
         return EXIT_FAILURE;
@@ -178,11 +178,11 @@ int main(int argc, char *argv[]) {
     checkSymOmpTime = end_time - start_time;
     //checkSymOmpTime = time_diff(&start, &end);
 
-//    if(rr) {
-//        printf( "\n è sym\n");
-//    }else {
-//        printf("\nnon è sym\n");
-//    }
+    if(rr) {
+        printf( "\n is sym\n");
+    }else {
+        printf("\n isn't sym\n");
+    }
 
     start_time2 = omp_get_wtime();
     //gettimeofday(&start, NULL);
@@ -191,7 +191,9 @@ int main(int argc, char *argv[]) {
     //gettimeofday(&end, NULL);
     matTransposeOmpTime = end_time2 - start_time2;
     //matTransposeOmpTime = time_diff(&start, &end);
-    //check(n, mat, tam);
+
+
+    check(n, mat, tam); //check the correctness of the transposition
 
     printf("\nN: %d\n", n);
     printf( "checkSymOMP [s]: %f\n", checkSymOmpTime);
@@ -201,7 +203,6 @@ int main(int argc, char *argv[]) {
 
     free(tam);
     free(mat);
-    free(tamImp);
 
 
     return EXIT_SUCCESS;

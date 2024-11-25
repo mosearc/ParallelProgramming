@@ -97,7 +97,7 @@ void matTransposeImp(int n, float (*mat)[n], float (*tam)[n]) {  // see cache-ob
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        printf("Uso: %s <numero>\n", argv[0]);
+        printf("Uso: %s <matrix dim>\n", argv[0]);
         return 1;
     }
     int n = atoi(argv[1]);
@@ -119,9 +119,6 @@ int main(int argc, char *argv[]) {
 
     float(*tam)[n];
     tam = (float(*)[n])malloc(sizeof(*tam) * n);
-
-    float(*tamImp)[n];
-    tamImp = (float(*)[n])malloc(sizeof(*tamImp) * n);
 
     if (!mat || !tam) {
         printf( "failed to allocate mat and/or tam\n");
@@ -152,15 +149,15 @@ int main(int argc, char *argv[]) {
     gettimeofday(&end, NULL);
     checkSymTimeImp = time_diff(&start, &end);
 
-//    if(r) {
-//        printf( "\n è sym\n");
-//    }else {
-//        printf("\nnon è sym\n");
-//    }
+    if(r) {
+        printf( "\n is sym\n");
+    }else {
+        printf("\n isn't sym\n");
+    }
 
     gettimeofday(&start, NULL);
 #pragma inline
-    matTransposeImp(n, mat, tamImp);
+    matTransposeImp(n, mat, tam);
     gettimeofday(&end, NULL);
     matTransposeTimeImp = time_diff(&start, &end);
 
@@ -172,7 +169,7 @@ int main(int argc, char *argv[]) {
 //     }
 
 
-    //check(n, mat, tam);
+    check(n, mat, tam); //check the correctness of the transposition
 
     printf("\nN: %d\n", n);
     printf( "checkSymImp [s]: %f\n", checkSymTimeImp);
@@ -182,7 +179,6 @@ int main(int argc, char *argv[]) {
 
     free(tam);
     free(mat);
-    free(tamImp);
 
 
 
