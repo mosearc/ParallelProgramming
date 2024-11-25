@@ -10,6 +10,51 @@ openMP 3.1 on gcc 4.8 -> questa è presente nel cluster :(
 
 fare la trasposizione con metà manderebbe a puttane la cache per gli accessi doppi
 
+
+
+Bmem: dim*dim*4*2/time
+omp:
+ 16*4*2/7.8e-06
+ 8*8*4*2/8e-06
+ 16*16*4*2/8.4e-06
+ 32*32*4*2/1.42e-05
+ 64*64*4*2/1.92e-05
+ 128*128*4*2/6.24e-05
+ 256*256*4*2/0.0003812
+ 512*512*4*2/0.0006382
+ 1024*1024*4*2/0.001306
+ 2048*2048*4*2/0.0031218
+ 4096*4096*4*2/0.0126362
+
+imp:
+ 16*4*2/0.0000002
+ 8*8*4*2/0.0000008
+ 16*16*4*2/0.0000008
+ 32*32*4*2/0.0000018
+64*64*4*2/0.0000122
+128*128*4*2/0.000053
+256*256*4*2/0.000259
+512*512*4*2/0.0009192
+1024*1024*4*2/0.003326
+2048*2048*4*2/0.0166552
+4096*4096*4*2/0.110045
+
+seq:
+16*4*2/0.0000002
+8*8*4*2/0.0000002
+16*16*4*2/0.000001
+32*32*4*2/0.000002
+64*64*4*2/0.0000112
+128*128*4*2/0.0000562
+256*256*4*2/0.0004318
+512*512*4*2/0.0030544
+1024*1024*4*2/0.021889
+2048*2048*4*2/0.118614
+4096*4096*4*2/1.2339612
+
+
+
+
 ----------
 
 gcc-9.1.0 -O2 -march=native -faggressive-loop-optimizations -floop-interchange -ftree-vectorize -fprefetch-loop-arrays -falign-loops -floop-unroll-and-jam -ftree-loop-distribution -o runFlags main.c
@@ -25,9 +70,10 @@ gcc-9.1.0 -O2 -ftree-loop-distribution -floop-interchange -floop-unroll-and-jam 
 
 Possibili problemi:
 Overhead di creazione dei thread: Creare troppi thread rispetto al lavoro disponibile può peggiorare le prestazioni.
-Nn check sym puo esserci casino a causa delle sezioni critiche -> problemi xche cancel non c'è in openMP 3.1
+Nn check sym puo esserci casino a causa delle sezioni critiche -> problemi xche cancel non c'è in openMP 3.1, soluzione potrebbe essere interrompere il loop appena si trova un match ma nel caso peggiore rimane la stessa complessità
 Nella trasposizione chill ogni thread fa lo stesso lavoro e non c'è bisogno di sezioni critiche xche scrivono in celle indipendenti
-
+sopra una carta soglia di thread le performance peggiorano a causa del'overhead causato dalla gestione del thread, si può notare la risalita nei grafici
+creare mini block e buffer può migliorare i cache miss
 
 
 
@@ -35,6 +81,7 @@ reference:
 https://leimao.github.io/blog/Math-Bound-VS-Memory-Bound-Operations/ -> calcolo bound
 https://gcc.gnu.org/onlinedocs/gcc/Other-Builtins.html -> prefetch
 https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html -> flag di ottimizzazione
+https://www.sciencedirect.com/topics/computer-science/instruction-level-parallelism -> ILP
 https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/developer-guide-reference/2024-2/prefetch-noprefetch.html -> pragma prefetch
 https://ark.intel.com/content/www/us/en/ark/products/193951/intel-xeon-gold-6252n-processor-35-75m-cache-2-30-ghz.html -> info processori cluster
 https://en.wikipedia.org/wiki/DDR_SDRAM -> info ram del cluster
@@ -43,6 +90,7 @@ https://www.cpu-world.com/CPUs/Xeon/Intel-Xeon%206252N.html -> info processori c
 https://www.overleaf.com/latex/templates/ieee-conference-template/grfzhhncsfqn -> ieee template
 https://www.delftstack.com/howto/c/gettimeofday-in-c/ -> get time of day
 https://stackoverflow.com/questions/8107965/concept-of-block-size-in-a-cache -> blocking
+https://www.intel.com/content/www/us/en/docs/advisor/cookbook/2023-0/optimize-memory-access-patterns.html -> optimize memory acccess pattern
 https://www.cita.utoronto.ca/~merz/intel_c10b/main_cls/mergedProjects/optaps_cls/common/optaps_perf_optstrats.htm
 https://www.ibm.com/docs/en/zos/3.1.0?topic=category-optimization-tuning#pragmas_optzn -> pragmas
 https://www.openmp.org/spec-html/5.0/openmp.html -> openMP api
