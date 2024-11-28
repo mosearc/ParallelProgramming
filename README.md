@@ -14,15 +14,14 @@ Ogni cartella rappresenta una versione e dentro ognuna di essa è presente la ca
 
 ```
 Total/
-├── ImpAll/
-├── ImpOnliO2/
-├── ImpOnlyFlags/
-├── ImpPragma/
-├── OmpDynamic/
-├── OmpNoBlocking/
-├── OmpStatic/
-├── BW.csv/
-├── Readme.md/
+├── ImpAll/ -> sequential Optimized with the best configuration
+├── ImpOnliO2/ -> sequential optimized with only O2 flag
+├── ImpOnlyFlags/ -> sequantial optimized with only compilation flags without O2
+├── ImpPragma/ -> sequential optimized with only pragma instructions
+├── OmpDynamic/ -> parallel with Blocking and schedule(Dynamic)
+├── OmpNoBlocking/ -> parallel without Blocking
+├── OmpStatic/ -> parallel with Blocking and schedule(Static)
+├── BW.csv/ -> Data for Bandwidth
 └── scriptTotal.pbs
 ```
 
@@ -31,29 +30,29 @@ Total/
 
 Per avviare in modalità sviluppo:
 ```bash
-qsub script.pbs
+qsub scriptTotal.pbs
 ```
 in ogni cartella verrà creato un file .._processed.csv con tutti i dati
 e, se la cartella contine una versione OpenMP verrà creato un nuovo file .._processed_SpeeEff.csv che contiene anche i dati degli speedup ed efficiency
 
-se si vuole generare i grafici eseguire:
+se si vuole generare i grafici entrare nella cartella della versione desiderata ed eseguire:
 ```python
 python3 plot.py <file_processed.csv>
 ```
-se si vuole i grafici in scala logaritmica eseguire:
+se si vuole i grafici in scala logaritmica entrare nella cartella della versione desiderata ed eseguire:
 ```python
 python3 plot_log.py <file_processed.csv>
 ```
-se si vogliono i grafici di speedup ed efficiency eseguire:
+se si vogliono i grafici di speedup ed efficiency entrare nella cartella della versione desiderata ed eseguire:
 ```python
 python3 plot_eff.py <file_processed_SpeeEff.csv>
 ```
 
-se si vogliono i grafici di speedup ed efficiency in scala logaritmica eseguire:
+se si vogliono i grafici di speedup ed efficiency in scala logaritmica entrare nella cartella della versione desiderata ed eseguire:
 ```python
 python3 plot_eff_log.py <file_processed_SpeeEff.csv>
 ```
-se si vogliono calcolare i tempi minimi per calcolare la bandwidth eseguire:
+se si vogliono calcolare i tempi minimi per calcolare la bandwidth entrare nella cartella OmpDynamic ed eseguire:
 ```python
 python3 Find_Min.py <file_processed*.csv>
 ```
