@@ -1,7 +1,7 @@
 # Optimizing Square Matrix Symmetry Verification and Transposition
 
 Optimizing Square Matrix Symmetry Verification and Transposition Using Implicit Parallelization Techniques and OpenMP  
-Ogni cartella contiene il proprio readme con la descrizione del contenuto
+Ogni cartella rappresenta una versione e dentro ognuna di essa è presente la cartella "Data" con i dati e grafici di quella versione
 
 ## Requisiti
 
