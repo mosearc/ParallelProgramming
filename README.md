@@ -57,6 +57,5 @@ se si vogliono calcolare i tempi minimi per calcolare la bandwidth eseguire:
 ```python
 python3 Find_Min.py <file_processed*.csv>
 ```
-in output si avra un file con le dimenisioni e la corrispettiva tempistica, eseguire poi il calcolo a mano per trovare la bandwidth
-
+per il calcolo della Bandwidth è necessario poi appliare le formule a mano
 
