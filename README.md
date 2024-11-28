@@ -2,7 +2,7 @@
 
 Optimizing Square Matrix Symmetry Verification and Transposition Using Implicit Parallelization Techniques and OpenMP  
 Ogni cartella rappresenta una versione e dentro ognuna di essa è presente la cartella "Data" con i dati e grafici di quella versione
-
+(grafici disponibili solo per le versioni con OpenMP
 ## Requisiti
 
 - Gcc 9.1
