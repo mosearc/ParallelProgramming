@@ -10,6 +10,23 @@ Ogni cartella contiene il proprio readme con la descrizione del contenuto
 - OpenMP 3.1
 - Pyhton 3.7.2
 
+## Struttura del Progetto
+
+```
+H1/
+├── ImpAll/
+├── ImpOnliO2/
+├── ImpOnlyFlags/
+├── ImpPragma/
+├── OmpDynamic/
+├── OmpNoBlocking/
+├── OmpStatic/
+├── BW.csv/
+├── Readme.md/
+└── scriptTotal.pbs
+```
+
+
 ## Avvio
 
 Per avviare in modalità sviluppo:
