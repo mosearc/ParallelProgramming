@@ -13,7 +13,7 @@ Ogni cartella contiene il proprio readme con la descrizione del contenuto
 ## Struttura del Progetto
 
 ```
-H1/
+Total/
 ├── ImpAll/
 ├── ImpOnliO2/
 ├── ImpOnlyFlags/
