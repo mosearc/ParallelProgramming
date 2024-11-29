@@ -14,7 +14,70 @@ gcc() {
 }
 gcc --version
 # Select the working directory
-cd /home/mose.arcaro/Total/ImpAll
+cd /home/mose.arcaro/Total/64vs32vs16
+
+touch output8.csv
+echo "Threads,Dim,CheckSym,MatTranspose,Version" > output8.csv
+
+for (( k = 4; k <= 4096; k=k*2 )); do
+
+  gcc -o IMP8 IMP8.c
+  for i in {1..5}
+  do
+    ./IMP8 "$k"
+  done
+
+done
+
+python3 mean.py output8.csv
+
+touch output16.csv
+echo "Threads,Dim,CheckSym,MatTranspose,Version" > output16.csv
+
+for (( k = 4; k <= 4096; k=k*2 )); do
+
+  gcc -o IMP16 IMP16.c
+  for i in {1..5}
+  do
+    ./IMP16 "$k"
+  done
+
+done
+
+python3 mean.py output16.csv
+
+touch output32.csv
+echo "Threads,Dim,CheckSym,MatTranspose,Version" > output32.csv
+
+for (( k = 4; k <= 4096; k=k*2 )); do
+
+  gcc -o IMP32 IMP32.c
+  for i in {1..5}
+  do
+    ./IMP32 "$k"
+  done
+
+done
+
+python3 mean.py output32.csv
+
+touch output64.csv
+echo "Threads,Dim,CheckSym,MatTranspose,Version" > output64.csv
+
+for (( k = 4; k <= 4096; k=k*2 )); do
+
+  gcc -o IMP64 IMP64.c
+  for i in {1..5}
+  do
+    ./IMP64 "$k"
+  done
+
+done
+
+python3 mean.py output64.csv
+
+cd ..
+cd ImpAll
 
 touch output_I_ALL.csv
 echo "Threads,Dim,CheckSym,MatTranspose,Version" > output_I_ALL.csv

@@ -1,0 +1,95 @@
+#!/bin/bash
+#PBS -N H1
+#PBS -o ./H1.o
+#PBS -e ./H1.e
+#PBS -q short_cpuQ
+#PBS -l walltime=00:30:00
+#PBS -l select=1:ncpus=2:ompthreads=96:mem=500mb
+
+# Modules for C
+module load python-3.7.2
+module load gcc91
+gcc() {
+    gcc-9.1.0 "$@"
+}
+gcc --version
+# Select the working directory
+cd /home/mose.arcaro/64vs32vs16
+
+touch output4.csv
+echo "Threads,Dim,CheckSym,MatTranspose,Version" > output4.csv
+
+for (( k = 4; k <= 4096; k=k*2 )); do
+
+  gcc -o IMP4 IMP4.c
+  for i in {1..5}
+  do
+    ./IMP4 "$k"
+  done
+
+done
+
+python3 mean.py output4.csv
+
+touch output8.csv
+echo "Threads,Dim,CheckSym,MatTranspose,Version" > output8.csv
+
+for (( k = 4; k <= 4096; k=k*2 )); do
+
+  gcc -o IMP8 IMP8.c
+  for i in {1..5}
+  do
+    ./IMP8 "$k"
+  done
+
+done
+
+python3 mean.py output8.csv
+
+touch output16.csv
+echo "Threads,Dim,CheckSym,MatTranspose,Version" > output16.csv
+
+for (( k = 4; k <= 4096; k=k*2 )); do
+
+  gcc -o IMP16 IMP16.c
+  for i in {1..5}
+  do
+    ./IMP16 "$k"
+  done
+
+done
+
+python3 mean.py output16.csv
+
+touch output32.csv
+echo "Threads,Dim,CheckSym,MatTranspose,Version" > output32.csv
+
+for (( k = 4; k <= 4096; k=k*2 )); do
+
+  gcc -o IMP32 IMP32.c
+  for i in {1..5}
+  do
+    ./IMP32 "$k"
+  done
+
+done
+
+python3 mean.py output32.csv
+
+touch output64.csv
+echo "Threads,Dim,CheckSym,MatTranspose,Version" > output64.csv
+
+for (( k = 4; k <= 4096; k=k*2 )); do
+
+  gcc -o IMP64 IMP64.c
+  for i in {1..5}
+  do
+    ./IMP64 "$k"
+  done
+
+done
+
+python3 mean.py output64.csv
+
+
+
