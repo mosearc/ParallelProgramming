@@ -45,6 +45,8 @@ It requires some time to coplete (around 50 minutes).
 In each folder, a *_processed.csv file will be created with all data
 and, if the folder contains an OpenMP version, a new *_processed_SpeeEff.csv file will be created containing Speedup and Efficiency data
 
+-----
+
 Graphs available only for OpenMP versions
 
 To generate graphs, enter the desired version folder and run:
