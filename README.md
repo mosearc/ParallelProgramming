@@ -30,6 +30,7 @@ Total/
 
 Per avviare lo script (it requires around 30 minutes to complete):
 ```bash
+cd Total
 qsub scriptTotal.pbs
 ```
 in ogni cartella verrà creato un file .._processed.csv con tutti i dati
