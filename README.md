@@ -28,7 +28,7 @@ Total/
 
 ## Avvio
 
-Per avviare in modalità sviluppo:
+Per avviare lo script:
 ```bash
 qsub scriptTotal.pbs
 ```
