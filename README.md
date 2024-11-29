@@ -28,7 +28,7 @@ Total/
 
 ## Avvio
 
-Per avviare lo script (it requires around 30 minutes to complete):
+Per avviare lo script (it requires around 40 minutes to complete):
 ```bash
 cd Total
 qsub scriptTotal.pbs
