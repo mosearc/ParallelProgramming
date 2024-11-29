@@ -6,7 +6,8 @@
 #include <omp.h>
 
 
-#define BLOCK_SIZE_CACHE 64 //trova quello giusto per il cluster - (cahce cluster/float)^0.5 dato che i blocchi son quadrati : (32K/4)^0.5 = 90
+#define BLOCK_SIZE_CACHE 8 //trova quello giusto per il cluster - (cahce cluster/float)^0.5 dato che i blocchi son quadrati : (32K/4)^0.5 = 90
+#define BLOCK_SIZE_CACHE_SYM 32
 
 
 float time_diff(struct timeval *start, struct timeval *end) {
@@ -36,20 +37,20 @@ void init_mat(int n, float(* mat)[n] ) {
 #pragma isolated_call(checkSymImp)
 int checkSymImp(int n, float(*mat)[n]) {  // see cache-oblivous alg or tiling
     int tmp = 1;
-    for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
-        for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
+    for (int i = 0; i < n; i += BLOCK_SIZE_CACHE_SYM) {
+        for (int j = 0; j < n; j += BLOCK_SIZE_CACHE_SYM) {
             // Trasponi il blocco (i, j)
-            for (int k = i; k < i + BLOCK_SIZE_CACHE && k < n; ++k) {
+            for (int k = i; k < i + BLOCK_SIZE_CACHE_SYM && k < n; ++k) {
                 //#pragma ivdep -> peggiora
                 //#pragma omp simd -> qui non ha senso
 #pragma unroll
-                for (int l = j; l < j + BLOCK_SIZE_CACHE && l < n; ++l) {
+                for (int l = j; l < j + BLOCK_SIZE_CACHE_SYM && l < n; ++l) {
 #pragma execution_frequency(very_high)
                     // Prefetcha una riga successiva di mat, ad esempio 4 iterazioni in avanti
                     if (l + 4 < n) {
                         __builtin_prefetch(&mat[k][l + 4], 0, 1);  // Prefetch per lettura
                     }
-                    if (l + 4 < n) __builtin_prefetch(&mat[l + 4][k], 0, 1);
+                    
 
                     //La distanza tra il dato prefetchato e l'elemento corrente (l + 4 e k + 4 in questo esempio) può variare.
                     //Distanze troppo grandi rischiano di sostituire in cache i dati ancora utili,

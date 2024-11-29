@@ -17,6 +17,7 @@ Inside each Omp* folder is a "Charts" folder with graphs related to that version
 
 ```
 Total/
+├── 64vs32vs16/ -> finding the best block size
 ├── ImpAll/ -> sequential optimized with the best configuration
 ├── ImpOnlyO2/ -> sequential optimized with only O2 flag
 ├── ImpOnlyFlags/ -> sequential optimized with only compilation flags without O2
@@ -30,11 +31,16 @@ Total/
 
 ## Execution
 
-To run the script (it requires around 40 minutes to complete):
+To run the script do this:
 ```bash
 cd Total
+```
+Edit the line 17 of scriptTotal.pbs: cd /home/name.surname/Total/64vs32vs16 inserting your name and surname and then:
+```bash
 qsub scriptTotal.pbs
 ```
+It requires some time to coplete (around 50 minutes).
+
 In each folder, a *_processed.csv file will be created with all data
 and, if the folder contains an OpenMP version, a new *_processed_SpeeEff.csv file will be created containing Speedup and Efficiency data
 

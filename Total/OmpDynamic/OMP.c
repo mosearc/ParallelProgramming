@@ -5,7 +5,8 @@
 #include <sys/time.h>
 #include <omp.h>
 
-#define BLOCK_SIZE_CACHE 64 //trova quello giusto per il cluster - (cahce cluster/float)^0.5 dato che i blocchi son quadrati : (32K/4)^0.5 = 90
+#define BLOCK_SIZE_CACHE 8 //trova quello giusto per il cluster - (cahce cluster/float)^0.5 dato che i blocchi son quadrati : (32K/4)^0.5 = 90
+#define BLOCK_SIZE_CACHE_SYM 32
 
 float time_diff(struct timeval *start, struct timeval *end) {
     return (end->tv_sec - start->tv_sec) + 1e-6 * (end->tv_usec - start->tv_usec);
@@ -38,11 +39,11 @@ int checkSymOMP(int n, float (*mat)[n]) { //casino avendo molti thread a causa d
         int local_ret_val = 1;
 
 #pragma omp for collapse(2) schedule(guided) nowait
-        for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
-            for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
-                for (int k = i; k < i + BLOCK_SIZE_CACHE && k < n; ++k) {
+        for (int i = 0; i < n; i += BLOCK_SIZE_CACHE_SYM) {
+            for (int j = 0; j < n; j += BLOCK_SIZE_CACHE_SYM) {
+                for (int k = i; k < i + BLOCK_SIZE_CACHE_SYM && k < n; ++k) {
 #pragma omp prefetch
-                    for (int l = j; l < j + BLOCK_SIZE_CACHE && l < n; ++l) {
+                    for (int l = j; l < j + BLOCK_SIZE_CACHE_SYM && l < n; ++l) {
                         if (mat[k][l] != mat[l][k]) {
                             local_ret_val = 0;
                         }
