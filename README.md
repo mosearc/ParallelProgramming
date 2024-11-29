@@ -48,12 +48,11 @@ se si vogliono i grafici di speedup ed efficiency entrare nella cartella della v
 ```python
 python3 plot_eff.py <file_processed_SpeeEff.csv>
 ```
-
 se si vogliono i grafici di speedup ed efficiency in scala logaritmica entrare nella cartella della versione desiderata ed eseguire:
 ```python
 python3 plot_eff_log.py <file_processed_SpeeEff.csv>
 ```
-se si vogliono calcolare i tempi minimi per calcolare la bandwidth entrare nella cartella OmpDynamic ed eseguire:
+se si vogliono calcolare i tempi minimi per calcolare la Bandwidth entrare nella cartella OmpDynamic ed eseguire, verrà creato un file Min_traspose.csv con i tempi per Dim:
 ```python
 python3 Find_Min.py <file_processed*.csv>
 ```
