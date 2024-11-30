@@ -3,7 +3,7 @@
 Optimizing Square Matrix Symmetry Verification and Transposition Using Implicit Parallelization Techniques and OpenMP 
 
 Each folder represents a version: Imp* folders represent optimized sequential versions, Omp* folders represent parallelized versions with OpenMP.
-Inside each version there is a "Data" folder containing all related data: *_processed.csv contains the data for Transposition anc Check symmetry, *_processed_SpeeEff.csv, if present, collects data related to Speedup and Efficiency (only for omp versions).
+Inside each version there is a "Data" folder containing all related data: *_processed.csv contains the data for Transposition and Check symmetry;  *_processed_SpeeEff.csv, if present, collects data related to Speedup and Efficiency (only for omp versions).
 Inside each Omp* folder there is a "Charts" folder with graphs related to that version.
 
 ## Requirements
