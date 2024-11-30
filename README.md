@@ -36,7 +36,7 @@ To run the script:
 ```bash
 cd Total
 ```
-Edit the line 17 of scriptTotal.pbs: cd /home/name.surname/Total/64vs32vs16 inserting your name and surname and then:
+Here edit line 17 of the file scriptTotal.pbs: cd /home/name.surname/Total/64vs32vs16 substituting name.surname with the credential of your account and then:
 ```bash
 qsub scriptTotal.pbs
 ```
