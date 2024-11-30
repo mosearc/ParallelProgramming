@@ -49,7 +49,12 @@ and, if the folder contains an OpenMP version, a new *_processed_SpeeEff.csv fil
 
 Graphs available only for OpenMP versions
 
-To generate graphs, enter the desired version folder and run:
+To generate graphs, firtly load the python module:
+```bash
+module load python-3.7.2
+```
+
+Then enter the desired version folder and run:
 ```python
 python3 plot.py <*_processed.csv>
 ```
