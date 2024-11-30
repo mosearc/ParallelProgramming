@@ -6,7 +6,7 @@
 #include <omp.h>
 
 
-#define BLOCK_SIZE_CACHE 16 //trova quello giusto per il cluster - (cahce cluster/float)^0.5 dato che i blocchi son quadrati : (32K/4)^0.5 = 90
+
 
 
 float time_diff(struct timeval *start, struct timeval *end) {
@@ -27,8 +27,8 @@ void check(int n, float (*mat)[n], float(*tam)[n]) {
 void init_mat(int n, float(* mat)[n] ) {
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-            //mat[i][j] = rand() / (float) RAND_MAX;
-            mat[i][j] = 42;
+            mat[i][j] = rand() / (float) RAND_MAX;
+
         }
     }
 }
@@ -36,15 +36,15 @@ void init_mat(int n, float(* mat)[n] ) {
 
 
 #pragma isolated_call(matTransposeImp)
-int checkSymImp(int n, float(*mat)[n]) {  // see cache-oblivous alg or tiling
+int checkSymImp(int n, float(*mat)[n]) {  
     int ret_val = 1;
     for (int i = 0; i < n; ++i) {
 #pragma unroll
-        for (int j = 0; j < n; ++j) { // Controlla solo sopra la diagonale
+        for (int j = 0; j < n; ++j) { 
 #pragma execution_frequency(very_high)
             if (mat[i][j] != mat[j][i]) {
 
-                ret_val = 0;; // Non è simmetrica
+                ret_val = 0; // Non è simmetrica
             }
         }
     }
@@ -55,7 +55,7 @@ int checkSymImp(int n, float(*mat)[n]) {  // see cache-oblivous alg or tiling
 
 
 #pragma isolated_call(matTransposeImp)
-void matTransposeImp(int n, float (*mat)[n], float (*tam)[n]) {  // see cache-oblivous alg or tiling
+void matTransposeImp(int n, float (*mat)[n], float (*tam)[n]) {  
     for (int r = 0; r < n; ++r){
 #pragma unroll
         for (int c = 0; c < n; ++c) {
@@ -82,9 +82,9 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    //fprintf(file, "Threads,dim,checkSym,matTranspose,IMP\n");
 
-    // matrix init
+
+
     float(*mat)[n];
     mat = (float(*)[n])malloc(sizeof(*mat) * n);
 
@@ -98,15 +98,9 @@ int main(int argc, char *argv[]) {
 
 
 
-    init_mat(n, mat); //init it
+    init_mat(n, mat);     // matrix init
 
-        //print it
-//     for (int i = 0; i < n; ++i) {
-//         for (int j = 0; j < n; ++j) {
-//             printf("[%f]", mat[i][j]);
-//         }
-//         printf("\n");
-//     }
+
 
 
     struct timeval start, end;
@@ -132,12 +126,7 @@ int main(int argc, char *argv[]) {
     gettimeofday(&end, NULL);
     matTransposeTimeImp = time_diff(&start, &end);
 
-//         for (int i = 0; i < n; ++i) {
-//         for (int j = 0; j < n; ++j) {
-//             printf("[%f]", tam[i][j]);
-//         }
-//         printf("\n");
-//     }
+
 
 
     check(n, mat, tam); //check the correctness of the transposition

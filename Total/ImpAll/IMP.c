@@ -6,7 +6,7 @@
 #include <omp.h>
 
 
-#define BLOCK_SIZE_CACHE 8 //trova quello giusto per il cluster - (cahce cluster/float)^0.5 dato che i blocchi son quadrati : (32K/4)^0.5 = 90
+#define BLOCK_SIZE_CACHE 8 
 #define BLOCK_SIZE_CACHE_SYM 32
 
 
@@ -28,34 +28,29 @@ void check(int n, float (*mat)[n], float(*tam)[n]) {
 void init_mat(int n, float(* mat)[n] ) {
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-            //mat[i][j] = rand() / (float) RAND_MAX;
-            mat[i][j] = 42;
+            mat[i][j] = rand() / (float) RAND_MAX;
+
         }
     }
 }
 
 #pragma isolated_call(checkSymImp)
-int checkSymImp(int n, float(*mat)[n]) {  // see cache-oblivous alg or tiling
+int checkSymImp(int n, float(*mat)[n]) { 
     int tmp = 1;
     for (int i = 0; i < n; i += BLOCK_SIZE_CACHE_SYM) {
         for (int j = 0; j < n; j += BLOCK_SIZE_CACHE_SYM) {
-            // Trasponi il blocco (i, j)
+
             for (int k = i; k < i + BLOCK_SIZE_CACHE_SYM && k < n; ++k) {
-                //#pragma ivdep -> peggiora
-                //#pragma omp simd -> qui non ha senso
+        
 #pragma unroll
                 for (int l = j; l < j + BLOCK_SIZE_CACHE_SYM && l < n; ++l) {
 #pragma execution_frequency(very_high)
-                    // Prefetcha una riga successiva di mat, ad esempio 4 iterazioni in avanti
+
                     if (l + 4 < n) {
-                        __builtin_prefetch(&mat[k][l + 4], 0, 1);  // Prefetch per lettura
+                        __builtin_prefetch(&mat[k][l + 4], 0, 1);  
                     }
                     
 
-                    //La distanza tra il dato prefetchato e l'elemento corrente (l + 4 e k + 4 in questo esempio) può variare.
-                    //Distanze troppo grandi rischiano di sostituire in cache i dati ancora utili,
-                    //mentre distanze troppo corte potrebbero non prefetchare con sufficiente anticipo
-                    //in matrici piccole potrebbe addirittua peggiorare
 
                     if (mat[k][l] != mat[l][k]) tmp = 0;
                 }
@@ -66,28 +61,25 @@ int checkSymImp(int n, float(*mat)[n]) {  // see cache-oblivous alg or tiling
 }
 
 #pragma isolated_call(matTransposeImp)
-void matTransposeImp(int n, float (*mat)[n], float (*tam)[n]) {  // see cache-oblivous alg or tiling
+void matTransposeImp(int n, float (*mat)[n], float (*tam)[n]) {  
     for (int i = 0; i < n; i += BLOCK_SIZE_CACHE) {
         for (int j = 0; j < n; j += BLOCK_SIZE_CACHE) {
-            // Trasponi il blocco (i, j)
+
             for (int k = i; k < i + BLOCK_SIZE_CACHE && k < n; ++k) {
 #pragma unroll
                 for (int l = j; l < j + BLOCK_SIZE_CACHE && l < n; ++l) {
 #pragma execution_frequency(very_high)
 
-                    // Prefetcha una riga successiva di mat, ad esempio 4 iterazioni in avanti
+
                     if (l + 4 < n) {
                         __builtin_prefetch(&mat[k][l + 4], 0, 1);  // Prefetch per lettura
                     }
-                    // Prefetcha una posizione di tam per la scrittura
+
                     if (k + 4 < n) {
                         __builtin_prefetch(&tam[l][k + 4], 1, 1);  // Prefetch per scrittura
                     }
 
-                    //La distanza tra il dato prefetchato e l'elemento corrente (l + 4 e k + 4 in questo esempio) può variare.
-                    //Distanze troppo grandi rischiano di sostituire in cache i dati ancora utili,
-                    //mentre distanze troppo corte potrebbero non prefetchare con sufficiente anticipo
-                    //in matrici piccole potrebbe addirittua peggiorare
+
                     tam[l][k] = mat[k][l];
                 }
             }
@@ -112,9 +104,9 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    //fprintf(file, "Threads,dim,checkSym,matTranspose,IMP\n");
 
-    // matrix init
+
+    
     float(*mat)[n];
     mat = (float(*)[n])malloc(sizeof(*mat) * n);
 
@@ -128,15 +120,9 @@ int main(int argc, char *argv[]) {
 
 
 
-    init_mat(n, mat); //init it
+    init_mat(n, mat); // matrix init
 
-        //print it
-//     for (int i = 0; i < n; ++i) {
-//         for (int j = 0; j < n; ++j) {
-//             printf("[%f]", mat[i][j]);
-//         }
-//         printf("\n");
-//     }
+
 
 
     struct timeval start, end;
@@ -162,12 +148,7 @@ int main(int argc, char *argv[]) {
     gettimeofday(&end, NULL);
     matTransposeTimeImp = time_diff(&start, &end);
 
-//         for (int i = 0; i < n; ++i) {
-//         for (int j = 0; j < n; ++j) {
-//             printf("[%f]", tam[i][j]);
-//         }
-//         printf("\n");
-//     }
+
 
 
     check(n, mat, tam); //check the correctness of the transposition

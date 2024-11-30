@@ -5,7 +5,7 @@
 #include <sys/time.h>
 #include <omp.h>
 
-#define BLOCK_SIZE_CACHE 64 //trova quello giusto per il cluster - (cahce cluster/float)^0.5 dato che i blocchi son quadrati : (32K/4)^0.5 = 90
+
 
 
 float time_diff(struct timeval *start, struct timeval *end) {
@@ -27,7 +27,7 @@ void init_mat(int n, float(* mat)[n] ) {
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
             mat[i][j] = rand() / (float) RAND_MAX;
-            //mat[i][j] = 42;
+
         }
     }
 }
@@ -36,9 +36,9 @@ void init_mat(int n, float(* mat)[n] ) {
 int checkSym(int n, float(*mat)[n]) {
     int ret_val = 1;
     for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) { // Controlla solo sopra la diagonale
+        for (int j = 0; j < n; ++j) { 
             if (mat[i][j] != mat[j][i]) {
-                ret_val = 0;; // Non è simmetrica
+                ret_val = 0;
             }
         }
     }
@@ -66,11 +66,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    //fprintf(file, "Threads,dim,checkSym,matTranspose,SEQ\n");
 
-    // n init
 
-    // matrix init
+
+
+
     float(*mat)[n];
     mat = (float(*)[n])malloc(sizeof(*mat) * n);
 
@@ -82,10 +82,10 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    init_mat(n, mat); //init it
+    init_mat(n, mat);     // matrix init
 
 
-    // double checkSymTime, matTransposeTime, matTransposeTimeImp, checkSymTimeImp;
+
     struct timeval start, end;
     float checkSymTime, matTransposeTime, matTransposeTimeImp, checkSymTimeImp;
     double start_time, end_time, start_time2, end_time2;
