@@ -32,7 +32,7 @@ Total/
 
 ## Execution
 
-To run the script do this:
+To run the script:
 ```bash
 cd Total
 ```
@@ -40,7 +40,7 @@ Edit the line 17 of scriptTotal.pbs: cd /home/name.surname/Total/64vs32vs16 inse
 ```bash
 qsub scriptTotal.pbs
 ```
-It requires some time to coplete (around 50 minutes).
+It requires some time to complete (around 40 minutes).
 
 In each folder, a *_processed.csv file will be created with all data
 and, if the folder contains an OpenMP version, a new *_processed_SpeeEff.csv file will be created containing Speedup and Efficiency data
