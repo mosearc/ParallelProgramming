@@ -1,4 +1,3 @@
-
 https://docs.google.com/spreadsheets/d/1-n4q-nFSHiIugUh_PSmsFS1VwP_ZUitkCSyDvz2As0E/edit?gid=1254941127#gid=1254941127 -> info hard
 https://mpitutorial.com/tutorials/ -> mpi tutorial
 https://www.open-mpi.org/doc/v4.0/ -> mpi doc
