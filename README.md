@@ -1,6 +1,14 @@
 # Optimizing Square Matrix Symmetry Verification and Transposition
 
-Optimizing Square Matrix Symmetry Verification and Transposition Using Implicit Parallelization Techniques and OpenMP
+Optimizing Square Matrix Symmetry Verification and Transposition Using Implicit Parallelization Techniques, OpenMP and MPI
+
+## Assignment links
+For H1:  [H1 (Implicit Parallelization and OpenMP)](#h1) 
+
+For H2:  [H2 (OpenMP and MPI)](#h2) 
+
+
+# H1
 
 Each folder represents a version: Imp* folders represent optimized sequential versions, Omp* folders represent parallelized versions with OpenMP.
 Inside each version there is a "Data" folder containing all related data: *_processed.csv contains the data for Transposition and Check symmetry;  *_processed_SpeeEff.csv, if present, collects data related to Speedup and Efficiency (only for omp versions).
@@ -76,3 +84,7 @@ python3 Find_Min.py <*_processed.csv>
 ```
 This will create a Min_MatTraspose.csv file with times by Dim.
 For bandwidth calculation, formulas must then be applied manually.
+
+# H2
+
+
