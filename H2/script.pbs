@@ -1,15 +1,15 @@
 #!/bin/bash
 # Job name
-#PBS -N name
+#PBS -N H2
 # Output files
-#PBS -o ./name.o
-#PBS -e ./name.e
+#PBS -o ./H2.o
+#PBS -e ./H2.e
 # Queue name
 #PBS -q short_cpuQ
 # Set the maximum wall time
 #PBS -l walltime=0:02:00
 # Number of nodes, cpus, mpi processors and amount of memory
-#PBS -l select=1:ncpus=4:mpiprocs=4:mem=1mb
+#PBS -l select=1:ncpus=96:mpiprocs=96:mem=1gb
 
 # Modules for python and MPI
 module load gcc91
@@ -36,7 +36,7 @@ for NODE in $NODES; do
 done
 
 # Select the working directory
-cd /home/username/dir
+cd /home/mose.arcaro/H2
 
 # the code should be previously compiled
 mpicc code_mpi.c -o code.out

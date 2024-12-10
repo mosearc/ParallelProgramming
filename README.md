@@ -24,7 +24,7 @@ Inside each Omp* folder there is a "Charts" folder with graphs related to that v
 ## Project Structure
 
 ```
-Total/
+H1/
 ├── 64vs32vs16/ -> finding the best block size
 ├── ImpAll/ -> sequential optimized with the best configuration
 ├── ImpOnlyO2/ -> sequential optimized with only O2 flag
@@ -44,7 +44,7 @@ To run the script:
 ```bash
 cd H1
 ```
-Here edit line 17 of the file scriptTotal.pbs: cd /home/name.surname/Total/64vs32vs16 substituting name.surname with the credential of your account and then:
+Here edit line 17 of the file scriptTotal.pbs: cd /home/name.surname/H1/64vs32vs16 substituting name.surname with the credential of your account and then:
 ```bash
 qsub scriptTotal.pbs
 ```
