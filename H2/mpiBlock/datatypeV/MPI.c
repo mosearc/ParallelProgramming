@@ -1,5 +1,3 @@
-///general file
-
 #include <mpi.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -538,7 +536,7 @@ int main(int argc, char** argv) {
         // printf("\n");
     }
 
-    MPI_Bcast(mat, n*n, MPI_FLOAT, 0, MPI_COMM_WORLD);
+    //MPI_Bcast(mat, n*n, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
     //printf("Rank: %d\n", myrank);
     // for (int i = 0; i < n; i++) {
