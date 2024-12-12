@@ -483,6 +483,7 @@ void MatTransposeBlockMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int
     free(transposed_block);
 }
 
+
 int main(int argc, char** argv) {
 
     if (argc != 3) {

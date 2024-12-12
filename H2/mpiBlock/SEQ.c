@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
 
     srand(time(NULL));
 
-    FILE *file = fopen("outputOD.csv", "a");
+    FILE *file = fopen("outputBvNB.csv", "a");
     if (file == NULL) {
         perror("Errore nell'apertura del file");
         return 1;

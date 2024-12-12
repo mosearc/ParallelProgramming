@@ -15,11 +15,11 @@ float time_diff(struct timeval *start, struct timeval *end) {
 void check(int n, float (*mat)[n], float(*tam)[n]) {
     for (int r = 0; r < n; ++r)
         for (int c = 0; c < n; ++c) if (mat[r][c] != tam[c][r]) {
-            printf("\nError in matrix Trasposition\n");
+            printf("Error in matrix Trasposition\n");
             abort();
         }
 
-    printf("\nMatrix Traspositions success\n");
+    printf("Matrix Traspositions success\n");
 
 }
 
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 
     srand(time(NULL));
 
-    FILE *file = fopen("outputOD.csv", "a");
+    FILE *file = fopen("output.csv", "a");
     if (file == NULL) {
         perror("Errore nell'apertura del file");
         return 1;
@@ -108,10 +108,6 @@ int main(int argc, char *argv[]) {
     matTransposeTime = time_diff(&start, &end);
 
     check(n, mat, tam);
-
-    printf("\nN: %d\n", n);
-    printf( "checkSym    [s]: %f\n", checkSymTime);
-    printf( "matTranpose [s]: %f\n", matTransposeTime);
 
     fprintf(file, "1,%d,%f,%f,SEQ\n", n, checkSymTime, matTransposeTime);
 

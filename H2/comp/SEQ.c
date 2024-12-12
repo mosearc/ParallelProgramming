@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 
     srand(time(NULL));
 
-    FILE *file = fopen("outputOD.csv", "a");
+    FILE *file = fopen("outputC.csv", "a");
     if (file == NULL) {
         perror("Errore nell'apertura del file");
         return 1;
@@ -108,10 +108,6 @@ int main(int argc, char *argv[]) {
     matTransposeTime = time_diff(&start, &end);
 
     check(n, mat, tam);
-
-    printf("\nN: %d\n", n);
-    printf( "checkSym    [s]: %f\n", checkSymTime);
-    printf( "matTranpose [s]: %f\n", matTransposeTime);
 
     fprintf(file, "1,%d,%f,%f,SEQ\n", n, checkSymTime, matTransposeTime);
 

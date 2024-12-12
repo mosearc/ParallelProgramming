@@ -1,0 +1,1 @@
+comparison best mpi vs omp vs seq
