@@ -62,10 +62,7 @@ void checkSymMPI(int n, float(* mat)[n], int myrank, int size, int *tot) {
 }
 
 
-
-
-
-void MatTransposeBlockMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size) {  //BASIC
+void MatTransposeBlockMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size) { //NO DATATYPE NOV
     // Calculate the grid dimensions for process layout
     int grid_dim = (int)sqrt(size);
     if (grid_dim * grid_dim != size) {
@@ -90,98 +87,80 @@ void MatTransposeBlockMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int
     int row = rank / grid_dim;
     int col = rank % grid_dim;
 
-    // Allocate memory for local block
+    // Create temporary matrices for rearranging blocks if rank 0
+    float *send_buffer = NULL;
+    float *recv_buffer = NULL;
+    if (rank == 0) {
+        send_buffer = (float *)malloc(N * N * sizeof(float));
+        recv_buffer = (float *)malloc(N * N * sizeof(float));
+        if (!send_buffer || !recv_buffer) {
+            printf("Memory allocation failed on process 0\n");
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+
+        // Rearrange input matrix into send buffer for better scatter
+        for (int p = 0; p < size; p++) {
+            int p_row = p / grid_dim;
+            int p_col = p % grid_dim;
+            for (int i = 0; i < block_dim; i++) {
+                for (int j = 0; j < block_dim; j++) {
+                    send_buffer[p * block_dim * block_dim + i * block_dim + j] =
+                        mat[p_row * block_dim + i][p_col * block_dim + j];
+                }
+            }
+        }
+    }
+
+    // Allocate memory for local blocks
     float *local_block = (float *)malloc(block_dim * block_dim * sizeof(float));
     float *transposed_block = (float *)malloc(block_dim * block_dim * sizeof(float));
-
     if (!local_block || !transposed_block) {
         printf("Memory allocation failed on process %d\n", rank);
         MPI_Abort(MPI_COMM_WORLD, 1);
         return;
     }
 
-    // Distribute blocks from rank 0 to all processes
-    if (rank == 0) {
-        // Process 0 sends blocks to all other processes
-        for (int p = 1; p < size; p++) {
-            int p_row = p / grid_dim;
-            int p_col = p % grid_dim;
-            float *temp_block = (float *)malloc(block_dim * block_dim * sizeof(float));
+    // Scatter blocks to all processes
+    MPI_Scatter(send_buffer, block_dim * block_dim, MPI_FLOAT,
+                local_block, block_dim * block_dim, MPI_FLOAT,
+                0, MPI_COMM_WORLD);
 
-            // Pack block for process p
-            for (int i = 0; i < block_dim; i++) {
-                for (int j = 0; j < block_dim; j++) {
-                    temp_block[i * block_dim + j] =
-                        mat[p_row * block_dim + i][p_col * block_dim + j];
-                }
-            }
-
-            MPI_Send(temp_block, block_dim * block_dim, MPI_FLOAT, p, 0, MPI_COMM_WORLD);
-            free(temp_block);
-        }
-
-        // Process 0 keeps its own block
-        for (int i = 0; i < block_dim; i++) {
-            for (int j = 0; j < block_dim; j++) {
-                local_block[i * block_dim + j] = mat[i][j];
-            }
-        }
-    } else {
-        // Other processes receive their blocks
-        MPI_Recv(local_block, block_dim * block_dim, MPI_FLOAT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-    }
-
-    // Each process transposes its local block
+    // Transpose local block
     for (int i = 0; i < block_dim; i++) {
         for (int j = 0; j < block_dim; j++) {
             transposed_block[j * block_dim + i] = local_block[i * block_dim + j];
         }
     }
 
-    // Calculate destination coordinates
-    int target_row = col;
-    int target_col = row;
-    int target_rank = target_row * grid_dim + target_col;
+    // Gather transposed blocks
+    MPI_Gather(transposed_block, block_dim * block_dim, MPI_FLOAT,
+               recv_buffer, block_dim * block_dim, MPI_FLOAT,
+               0, MPI_COMM_WORLD);
 
-    // Gather transposed blocks to process 0
+    // Rearrange gathered blocks into final transposed matrix
     if (rank == 0) {
-        // Process 0 places its block in the correct position
-        for (int i = 0; i < block_dim; i++) {
-            for (int j = 0; j < block_dim; j++) {
-                tam[i][j] = transposed_block[i * block_dim + j];
-            }
-        }
+        for (int p = 0; p < size; p++) {
+            int src_row = p / grid_dim;
+            int src_col = p % grid_dim;
+            // Swap row and col for transposition
+            int dest_row = src_col;
+            int dest_col = src_row;
 
-        // Receive blocks from other processes
-        for (int p = 1; p < size; p++) {
-            float *recv_block = (float *)malloc(block_dim * block_dim * sizeof(float));
-            MPI_Recv(recv_block, block_dim * block_dim, MPI_FLOAT, p, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-            // Calculate where this block goes in the transposed matrix
-            int p_row = p / grid_dim;
-            int p_col = p % grid_dim;
-            int dest_row = p_col;  // Swapped for transposition
-            int dest_col = p_row;
-
-            // Place block in the correct position
             for (int i = 0; i < block_dim; i++) {
                 for (int j = 0; j < block_dim; j++) {
                     tam[dest_row * block_dim + i][dest_col * block_dim + j] =
-                        recv_block[i * block_dim + j];
+                        recv_buffer[p * block_dim * block_dim + i * block_dim + j];
                 }
             }
-            free(recv_block);
         }
-    } else {
-        // Other processes send their transposed blocks to process 0
-        MPI_Send(transposed_block, block_dim * block_dim, MPI_FLOAT, 0, 1, MPI_COMM_WORLD);
+        free(send_buffer);
+        free(recv_buffer);
     }
 
     // Clean up
     free(local_block);
     free(transposed_block);
 }
-
 
 int main(int argc, char** argv) {
 
@@ -232,6 +211,8 @@ int main(int argc, char** argv) {
       init_mat(n, mat);
     }
 
+
+
     //printf("Rank: %d\n", myrank);
 //    for (int i = 0; i < n; i++) {
 //      for (int j = 0; j < n; j++) {
@@ -241,10 +222,9 @@ int main(int argc, char** argv) {
 //    }
 //    printf("\n");
 
-    total_time_sym = -9;
+    total_time_sym = 0;
 
     start_time = MPI_Wtime();
-    //printf("before mat transpose: %d \n", myrank);
     MatTransposeBlockMPI(n, mat, tam, myrank, size);
 	end_time = MPI_Wtime();
     total_time_transp = end_time - start_time;
@@ -253,7 +233,8 @@ int main(int argc, char** argv) {
 
     if (myrank == 0){
    		check(n, mat, tam); //check the correctness of the transposition
-        fprintf(file, "%d,%d,%f,%f,MPI BB\n",processes, n, total_time_sym, total_time_transp);
+        fprintf(file, "%d,%d,%f,%f,MPI BNVD\n",processes, n, total_time_sym, total_time_transp);
+
     }
 
 

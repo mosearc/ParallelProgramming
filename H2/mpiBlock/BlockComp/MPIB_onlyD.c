@@ -215,6 +215,7 @@ int main(int argc, char** argv) {
     int myrank, size;
 
     double start_time, end_time, start_time_sym, end_time_sym, total_time_transp, total_time_sym;
+    double bcast_time_start, bcast_time_end, bcast_time_tot;
 
     int *sym;
 
@@ -239,7 +240,6 @@ int main(int argc, char** argv) {
         // printf("\n");
     }
 
-    //MPI_Bcast(mat, n*n, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
     //printf("Rank: %d\n", myrank);
     // for (int i = 0; i < n; i++) {
@@ -250,19 +250,7 @@ int main(int argc, char** argv) {
     // }
     // printf("\n");
 
-     start_time_sym = MPI_Wtime();
-     checkSymMPI(n, mat, myrank, size, sym);
-     end_time_sym = MPI_Wtime();
-     total_time_sym = start_time_sym - end_time_sym;
-
-     if (myrank == 0) {
- //      printf("sym: %d\n", *sym);
-         if (*sym) {
-             printf("is sym\n");
-         } else {
-             printf("is not sym\n");
-         }
-     }
+    total_time_sym = 0;
 
     start_time = MPI_Wtime();
     //printf("before mat transpose: %d \n", myrank);
@@ -284,9 +272,10 @@ int main(int argc, char** argv) {
         // }
         //printf("\n");
    		check(n, mat, tam); //check the correctness of the transposition
+        fprintf(file, "%d,%d,%f,%f,MPI BOD\n",processes, n, total_time_sym, total_time_transp);
+
     }
 
-    fprintf(file, "%d,%d,%f,%f,MPI BOD\n",processes, n, total_time_sym, total_time_transp);
 
     MPI_Finalize();
 

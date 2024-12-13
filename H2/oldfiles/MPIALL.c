@@ -59,57 +59,65 @@ void checkSymMPI(int n, float(* mat)[n], int myrank, int size, int *tot) {
     //printf("Rank %d successfully completed with %d\n", myrank, *tot);
 }
 
-
 void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size) {
-    // Calcola quante righe gestirà ogni processo
-    int rows_per_proc = N / size;
-    int extra_rows = N % size;
-    int start_row = rank * rows_per_proc + (rank < extra_rows ? rank : extra_rows);
-    int num_rows = rows_per_proc + (rank < extra_rows ? 1 : 0);
-
-    // Crea un tipo di dato per un blocco di righe contiguo
-    MPI_Datatype row_block_type;
-    MPI_Type_contiguous(N * num_rows, MPI_FLOAT, &row_block_type);
-    MPI_Type_commit(&row_block_type);
-
-    if (rank == 0) {
-        // Il processo 0 traspone prima le proprie righe
-        for (int i = start_row; i < start_row + num_rows; i++) {
-            for (int j = 0; j < N; j++) {
-                tam[j][i] = mat[i][j];
-            }
+    // Works only when N equals size and matrix can be evenly divided
+    if (N != size) {
+        if (rank == 0) {
+            printf("This implementation requires N == size\n");
         }
-
-        // Riceve e traspone i blocchi dagli altri processi
-        for (int p = 1; p < size; p++) {
-            int other_rows_per_proc = N / size;
-            int other_extra = (p < extra_rows ? 1 : 0);
-            int other_start = p * rows_per_proc + (p < extra_rows ? p : extra_rows);
-            int other_num_rows = other_rows_per_proc + other_extra;
-
-            // Alloca buffer temporaneo per il blocco ricevuto
-            float *temp_block = (float *)malloc(N * other_num_rows * sizeof(float));
-
-            // Riceve l'intero blocco in una singola operazione
-            MPI_Recv(temp_block, 1, row_block_type, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-            // Traspone il blocco ricevuto
-            for (int i = 0; i < other_num_rows; i++) {
-                for (int j = 0; j < N; j++) {
-                    tam[j][other_start + i] = temp_block[i * N + j];
-                }
-            }
-
-            free(temp_block);
-        }
-    } else {
-        // Gli altri processi inviano il loro blocco intero in una singola operazione
-        MPI_Send(&mat[start_row][0], 1, row_block_type, 0, 0, MPI_COMM_WORLD);
+        return;
     }
 
-    // Cleanup dei tipi di dato MPI
-    MPI_Type_free(&row_block_type);
+    // Each process will handle exactly one row of the matrix
+    int rows_per_proc = 1;
+
+    // Allocate local arrays
+    float* local_matrix = (float*)malloc(N * sizeof(float));  // One row per process
+    if (!local_matrix) {
+        printf("Memory allocation failed for local_matrix on process %d\n", rank);
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+
+    // Scatter the matrix - each process gets one row
+    MPI_Scatter(mat, N, MPI_FLOAT,
+                local_matrix, N, MPI_FLOAT,
+                0, MPI_COMM_WORLD);
+
+    // Allocate send buffer for transpose operation
+    float* send_buffer = (float*)malloc(N * sizeof(float));
+    if (!send_buffer) {
+        printf("Memory allocation failed for send_buffer on process %d\n", rank);
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+
+    // Copy and reorder data for sending
+    for (int i = 0; i < N; i++) {
+        send_buffer[i] = local_matrix[i];
+    }
+
+    // Allocate receive buffer for transposed data
+    float* local_transpose = (float*)malloc(N * sizeof(float));
+    if (!local_transpose) {
+        printf("Memory allocation failed for local_transpose on process %d\n", rank);
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+
+    // Perform all-to-all communication
+    MPI_Alltoall(send_buffer, 1, MPI_FLOAT,
+                 local_transpose, 1, MPI_FLOAT,
+                 MPI_COMM_WORLD);
+
+    // Gather the transposed matrix
+    MPI_Gather(local_transpose, N, MPI_FLOAT,
+               tam, N, MPI_FLOAT,
+               0, MPI_COMM_WORLD);
+
+    // Cleanup
+    free(local_matrix);
+    free(local_transpose);
+    free(send_buffer);
 }
+
 
 
 int main(int argc, char** argv) {
@@ -123,11 +131,11 @@ int main(int argc, char** argv) {
 
     srand(time(NULL));
 
-     FILE *file = fopen("outputC.csv", "a");
-     if (file == NULL) {
-         perror("Errore nell'apertura del file");
-         return 1;
-     }
+    FILE *file = fopen("output.csv", "a");
+    if (file == NULL) {
+        perror("Errore nell'apertura del file");
+        return 1;
+    }
 
     float(*mat)[n];
 	mat = (float(*)[n])malloc(sizeof(*mat) * n);
@@ -151,7 +159,7 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    if(size>n){
+    if(size != n){
       	printf("This implementation requires the number of the row at most equal at the number of the number of processors\n");
     	MPI_Abort(MPI_COMM_WORLD, 1);
     }
@@ -172,10 +180,9 @@ int main(int argc, char** argv) {
 
     start_time_sym = MPI_Wtime();
     MPI_Bcast(mat, n*n, MPI_FLOAT, 0, MPI_COMM_WORLD);
-
     checkSymMPI(n, mat, myrank, size, sym);
     end_time_sym = MPI_Wtime();
-    total_time_sym = end_time_sym - start_time_sym;
+    total_time_sym = start_time_sym - end_time_sym;
 
     if (myrank == 0) {
 //      printf("sym: %d\n", *sym);
@@ -189,14 +196,15 @@ int main(int argc, char** argv) {
     start_time = MPI_Wtime();
     MPI_Bcast(mat, n*n, MPI_FLOAT, 0, MPI_COMM_WORLD);
     MatTransposeMPI(n, mat, tam, myrank, size);
-    end_time = MPI_Wtime();
+	end_time = MPI_Wtime();
     total_time_transp = end_time - start_time;
 
 
     if (myrank == 0){
    		check(n, mat, tam); //check the correctness of the transposition
-        fprintf(file, "%d,%d,%f,%f,MPI DT\n",processes, n, total_time_sym, total_time_transp);
     }
+
+    fprintf(file, "%d,%d,%f,%f,MPI ATA\n",processes, n, total_time_sym, total_time_transp);
 
     MPI_Finalize();
 

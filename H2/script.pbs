@@ -7,7 +7,7 @@
 # Queue name
 #PBS -q short_cpuQ
 # Set the maximum wall time
-#PBS -l walltime=0:02:00
+#PBS -l walltime=01:00:00
 # Number of nodes, cpus, mpi processors and amount of memory
 #PBS -l select=1:ncpus=96:mpiprocs=96:ompthreads=96:mem=1gb
 
@@ -60,8 +60,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
   done
 
   mpicc MPI_Base.c -o MPI_Base
-  for m in {1..96}
-  do
+  for (( m = 1; m <= k && m <= 96; m++ )); do ########!
     for i in {1..5}
     do
       mpirun -np "$m" ./MPI_Base "$k" "$m"
@@ -70,7 +69,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
   done
 
   mpicc MPI_All.c -o MPI_All
-  if (($k <= 128)); then
+  if (($k < 128)); then
     for i in {1..5}
     do
       mpirun -np "$k" ./MPI_All "$k" "$k"
@@ -79,8 +78,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
   fi
 
   mpicc MPI_DataT.c -o MPI_DataT
-  for m in {1..96}
-  do
+  for (( m = 1; m <= k && m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPI_DataT "$k" "$m"
@@ -90,8 +88,8 @@ for (( k = 16; k <= 4096; k=k*2 )); do
 
 done
 
-python3
-python3
+#python3
+#python3
 
 cd ..
 cd comp
@@ -118,8 +116,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
   done
 
   mpicc MPI_DataT.c -o MPI_DataT
-  for m in {1..96}
-  do
+  for (( m = 1; m <= k && m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPI_DataT "$k" "$m"
@@ -129,8 +126,8 @@ for (( k = 16; k <= 4096; k=k*2 )); do
 
 done
 
-python3
-python3
+#python3
+#python3
 
 cd ..
 cd mpiBlock
@@ -142,9 +139,8 @@ echo "Processes,Dim,CheckSym,MatTranspose,Version" > outputBlock.csv
 
 for (( k = 16; k <= 4096; k=k*2 )); do
 
-  mpicc MPIB_Basic.c -o MPIB_Basic
-  for m in {1..96}
-  do
+  mpicc MPIB_Basic.c -o MPIB_Basic -lm
+  for (( m = 1; m <= k && m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPIB_Basic "$k" "$m"
@@ -152,9 +148,8 @@ for (( k = 16; k <= 4096; k=k*2 )); do
     done
   done
 
-  mpicc MPIB_DataTV.c -o MPIB_DataTV
-  for m in {1..96}
-  do
+  mpicc MPIB_DataTV.c -o MPIB_DataTV -lm
+  for (( m = 1; m <= k && m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPIB_DataTV "$k" "$m"
@@ -162,9 +157,8 @@ for (( k = 16; k <= 4096; k=k*2 )); do
     done
   done
 
-  mpicc MPIB_nvnd.c -o MPIB_nvnd
-  for m in {1..96}
-  do
+  mpicc MPIB_nvnd.c -o MPIB_nvnd -lm
+  for (( m = 1; m <= k && m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPIB_nvnd "$k" "$m"
@@ -172,9 +166,8 @@ for (( k = 16; k <= 4096; k=k*2 )); do
     done
   done
 
-  mpicc MPIB_onlyD.c -o MPIB_onlyD
-  for m in {1..96}
-  do
+  mpicc MPIB_onlyD.c -o MPIB_onlyD -lm
+  for (( m = 1; m <= k && m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPIB_onlyD "$k" "$m"
@@ -184,8 +177,8 @@ for (( k = 16; k <= 4096; k=k*2 )); do
 
 done
 
-python3
-python3
+#python3
+#python3
 
 cd ..
 
@@ -195,9 +188,14 @@ echo "Processes,Dim,CheckSym,MatTranspose,Version" > outputBvNB.csv
 
 for (( k = 16; k <= 4096; k=k*2 )); do
 
-  mpicc MPIB_DataTV.c -o MPIB_DataTV
-  for m in {1..96}
+  gcc -o SEQ SEQ.c
+  for i in {1..5}
   do
+    ./SEQ "$k"
+  done
+
+  mpicc MPIB_DataTV.c -o MPIB_DataTV -lm
+  for (( m = 1; m <= k && m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPIB_DataTV "$k" "$m"
@@ -206,8 +204,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
   done
 
   mpicc MPI_DataT.c -o MPI_DataT
-  for m in {1..96}
-  do
+  for (( m = 1; m <= k && m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPI_DataT "$k" "$m"
@@ -217,9 +214,8 @@ for (( k = 16; k <= 4096; k=k*2 )); do
 
 done
 
-python3
-python3
-
+#python3
+#python3
 
 
 

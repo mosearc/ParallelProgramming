@@ -123,7 +123,7 @@ int main(int argc, char** argv) {
 
     srand(time(NULL));
 
-     FILE *file = fopen("outputC.csv", "a");
+     FILE *file = fopen("output.csv", "a");
      if (file == NULL) {
          perror("Errore nell'apertura del file");
          return 1;
@@ -195,7 +195,7 @@ int main(int argc, char** argv) {
 
     if (myrank == 0){
    		check(n, mat, tam); //check the correctness of the transposition
-        fprintf(file, "%d,%d,%f,%f,MPI DT\n",processes, n, total_time_sym, total_time_transp);
+        fprintf(file, "%d,%d,%f,%f,MPI B\n",processes, n, total_time_sym, total_time_transp);
     }
 
     MPI_Finalize();

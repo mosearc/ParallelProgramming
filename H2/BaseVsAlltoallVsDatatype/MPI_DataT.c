@@ -59,6 +59,7 @@ void checkSymMPI(int n, float(* mat)[n], int myrank, int size, int *tot) {
     //printf("Rank %d successfully completed with %d\n", myrank, *tot);
 }
 
+
 void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size) {
     // Calcola quante righe gestirà ogni processo
     int rows_per_proc = N / size;
@@ -66,57 +67,47 @@ void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size
     int start_row = rank * rows_per_proc + (rank < extra_rows ? rank : extra_rows);
     int num_rows = rows_per_proc + (rank < extra_rows ? 1 : 0);
 
-//    // Crea il tipo per la colonna
-//    MPI_Datatype column_type;
-//    MPI_Type_vector(N, 1, N, MPI_FLOAT, &column_type);
-//    MPI_Type_commit(&column_type);
-
-    // Crea il tipo per il blocco di righe
+    // Crea un tipo di dato per un blocco di righe contiguo
     MPI_Datatype row_block_type;
     MPI_Type_contiguous(N * num_rows, MPI_FLOAT, &row_block_type);
     MPI_Type_commit(&row_block_type);
 
-    // Ogni processo invia il suo blocco di righe a tutti gli altri
-    for (int p = 0; p < size; p++) {
-        if (p != rank) {
-            MPI_Send(&mat[start_row][0], 1, row_block_type, p, 0, MPI_COMM_WORLD);
-        }
-    }
-
-    // Il processo corrente copia direttamente il suo blocco
-    for (int i = start_row; i < start_row + num_rows; i++) {
-        for (int j = 0; j < N; j++) {
-            tam[j][i] = mat[i][j];
-        }
-    }
-
-    // Ricevi i blocchi dagli altri processi
-    for (int p = 0; p < size; p++) {
-        if (p == rank) continue;
-
-        int other_rows_per_proc = N / size;
-        int other_extra = (p < extra_rows ? 1 : 0);
-        int other_start = p * rows_per_proc + (p < extra_rows ? p : extra_rows);
-        int other_num_rows = other_rows_per_proc + other_extra;
-
-        // Buffer temporaneo per ricevere il blocco
-        float *temp_block = (float *)malloc(N * other_num_rows * sizeof(float));
-
-        // Ricevi il blocco intero
-        MPI_Recv(temp_block, N * other_num_rows, MPI_FLOAT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
-        // Copia nella matrice trasposta
-        for (int i = 0; i < other_num_rows; i++) {
+    if (rank == 0) {
+        // Il processo 0 traspone prima le proprie righe
+        for (int i = start_row; i < start_row + num_rows; i++) {
             for (int j = 0; j < N; j++) {
-                tam[j][other_start + i] = temp_block[i * N + j];
+                tam[j][i] = mat[i][j];
             }
         }
 
-        free(temp_block);
+        // Riceve e traspone i blocchi dagli altri processi
+        for (int p = 1; p < size; p++) {
+            int other_rows_per_proc = N / size;
+            int other_extra = (p < extra_rows ? 1 : 0);
+            int other_start = p * rows_per_proc + (p < extra_rows ? p : extra_rows);
+            int other_num_rows = other_rows_per_proc + other_extra;
+
+            // Alloca buffer temporaneo per il blocco ricevuto
+            float *temp_block = (float *)malloc(N * other_num_rows * sizeof(float));
+
+            // Riceve l'intero blocco in una singola operazione
+            MPI_Recv(temp_block, 1, row_block_type, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
+            // Traspone il blocco ricevuto
+            for (int i = 0; i < other_num_rows; i++) {
+                for (int j = 0; j < N; j++) {
+                    tam[j][other_start + i] = temp_block[i * N + j];
+                }
+            }
+
+            free(temp_block);
+        }
+    } else {
+        // Gli altri processi inviano il loro blocco intero in una singola operazione
+        MPI_Send(&mat[start_row][0], 1, row_block_type, 0, 0, MPI_COMM_WORLD);
     }
 
-    // Pulisci i tipi di dati
-    MPI_Type_free(&column_type);
+    // Cleanup dei tipi di dato MPI
     MPI_Type_free(&row_block_type);
 }
 
@@ -132,11 +123,11 @@ int main(int argc, char** argv) {
 
     srand(time(NULL));
 
-    FILE *file = fopen("output.csv", "a");
-    if (file == NULL) {
-        perror("Errore nell'apertura del file");
-        return 1;
-    }
+     FILE *file = fopen("output.csv", "a");
+     if (file == NULL) {
+         perror("Errore nell'apertura del file");
+         return 1;
+     }
 
     float(*mat)[n];
 	mat = (float(*)[n])malloc(sizeof(*mat) * n);
@@ -169,7 +160,6 @@ int main(int argc, char** argv) {
       init_mat(n, mat);
     }
 
-    MPI_Bcast(mat, n*n, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
     //printf("Rank: %d\n", myrank);
 //    for (int i = 0; i < n; i++) {
@@ -181,9 +171,11 @@ int main(int argc, char** argv) {
 //    printf("\n");
 
     start_time_sym = MPI_Wtime();
+    MPI_Bcast(mat, n*n, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
     checkSymMPI(n, mat, myrank, size, sym);
     end_time_sym = MPI_Wtime();
-    total_time_sym = start_time_sym - end_time_sym;
+    total_time_sym = end_time_sym - start_time_sym;
 
     if (myrank == 0) {
 //      printf("sym: %d\n", *sym);
@@ -195,7 +187,7 @@ int main(int argc, char** argv) {
     }
 
     start_time = MPI_Wtime();
-    //printf("before mat transpose: %d \n", myrank);
+    MPI_Bcast(mat, n*n, MPI_FLOAT, 0, MPI_COMM_WORLD);
     MatTransposeMPI(n, mat, tam, myrank, size);
     end_time = MPI_Wtime();
     total_time_transp = end_time - start_time;
@@ -203,9 +195,8 @@ int main(int argc, char** argv) {
 
     if (myrank == 0){
    		check(n, mat, tam); //check the correctness of the transposition
+        fprintf(file, "%d,%d,%f,%f,MPI DT\n",processes, n, total_time_sym, total_time_transp);
     }
-
-    fprintf(file, "%d,%d,%f,%f,MPI DT\n",processes, n, total_time_sym, total_time_transp);
 
     MPI_Finalize();
 

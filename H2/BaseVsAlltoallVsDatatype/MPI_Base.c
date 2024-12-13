@@ -62,7 +62,6 @@ void checkSymMPI(int n, float(* mat)[n], int myrank, int size, int *tot) {
 
 
 void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size) {
-
     // Calcola quante righe gestirà ogni processo
     int rows_per_proc = N / size;
     int extra_rows = N % size;
@@ -74,47 +73,39 @@ void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size
     // Buffer temporaneo per memorizzare una riga
     float *temp_row = (float *)malloc(N * sizeof(float));
 
-    // Ogni processo elabora le proprie righe
-    for (int i = start_row; i < start_row + num_rows; i++) {
-        // Copia la riga corrente nel buffer temporaneo
-        for (int j = 0; j < N; j++) {
-            temp_row[j] = mat[i][j];
-        }
-
-        // Invia la riga a tutti gli altri processi
-        for (int p = 0; p < size; p++) {
-            if (p != rank) {
-                MPI_Send(temp_row, N, MPI_FLOAT, p, i, MPI_COMM_WORLD);
-            }
-        }
-
-        // Il processo corrente copia i suoi elementi nella posizione trasposta
-        for (int j = 0; j < N; j++) {
-            tam[j][i] = temp_row[j];
-        }
-    }
-
-    // Ricevi le righe dagli altri processi
-    for (int p = 0; p < size; p++) {
-        if (p == rank) continue;
-
-        int other_rows_per_proc = N / size;
-        int other_extra = (p < extra_rows ? 1 : 0);
-        int other_start = p * rows_per_proc + (p < extra_rows ? p : extra_rows);
-        int other_num_rows = other_rows_per_proc + other_extra;
-
-        for (int i = other_start; i < other_start + other_num_rows; i++) {
-            MPI_Recv(temp_row, N, MPI_FLOAT, p, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+    if (rank == 0) {
+        // Il processo 0 elabora prima le proprie righe
+        for (int i = start_row; i < start_row + num_rows; i++) {
             for (int j = 0; j < N; j++) {
-                tam[j][i] = temp_row[j];
+                tam[j][i] = mat[i][j];
             }
+        }
+
+        // Poi riceve le righe dagli altri processi
+        for (int p = 1; p < size; p++) {
+            int other_rows_per_proc = N / size;
+            int other_extra = (p < extra_rows ? 1 : 0);
+            int other_start = p * rows_per_proc + (p < extra_rows ? p : extra_rows);
+            int other_num_rows = other_rows_per_proc + other_extra;
+
+            for (int i = other_start; i < other_start + other_num_rows; i++) {
+                MPI_Recv(temp_row, N, MPI_FLOAT, p, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                for (int j = 0; j < N; j++) {
+                    tam[j][i] = temp_row[j];
+                }
+            }
+        }
+    } else {
+        // Gli altri processi inviano le proprie righe al processo 0
+        for (int i = start_row; i < start_row + num_rows; i++) {
+            for (int j = 0; j < N; j++) {
+                temp_row[j] = mat[i][j];
+            }
+            MPI_Send(temp_row, N, MPI_FLOAT, 0, i, MPI_COMM_WORLD);
         }
     }
 
     free(temp_row);
-
-    // Sincronizza tutti i processi prima di continuare
-    //MPI_Barrier(MPI_COMM_WORLD);
 }
 
 
@@ -166,7 +157,6 @@ int main(int argc, char** argv) {
       init_mat(n, mat);
     }
 
-    MPI_Bcast(mat, n*n, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
     //printf("Rank: %d\n", myrank);
 //    for (int i = 0; i < n; i++) {
@@ -178,8 +168,10 @@ int main(int argc, char** argv) {
 //    printf("\n");
 
     start_time_sym = MPI_Wtime();
+    MPI_Bcast(mat, n*n, MPI_FLOAT, 0, MPI_COMM_WORLD);
     checkSymMPI(n, mat, myrank, size, sym);
     end_time_sym = MPI_Wtime();
+    total_time_sym = end_time_sym - start_time_sym;
 
     if (myrank == 0) {
 //      printf("sym: %d\n", *sym);
@@ -191,17 +183,17 @@ int main(int argc, char** argv) {
     }
 
     start_time = MPI_Wtime();
-    //printf("before mat transpose: %d \n", myrank);
+    MPI_Bcast(mat, n*n, MPI_FLOAT, 0, MPI_COMM_WORLD);
     MatTransposeMPI(n, mat, tam, myrank, size);
     end_time = MPI_Wtime();
-    total_time_transp = end_time - start_time;);
+    total_time_transp = end_time - start_time;
 
 
     if (myrank == 0){
    		check(n, mat, tam); //check the correctness of the transposition
+        fprintf(file, "%d,%d,%f,%f,MPI B\n",processes, n, total_time_sym, total_time_transp);
     }
 
-    fprintf(file, "%d,%d,%f,%f,MPI B\n",processes, n, total_time_sym, total_time_transp);
 
     MPI_Finalize();
 
