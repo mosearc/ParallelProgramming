@@ -67,48 +67,55 @@ void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size
     int start_row = rank * rows_per_proc + (rank < extra_rows ? rank : extra_rows);
     int num_rows = rows_per_proc + (rank < extra_rows ? 1 : 0);
 
-    // Crea un tipo di dato per un blocco di righe contiguo
-    MPI_Datatype row_block_type;
-    MPI_Type_contiguous(N * num_rows, MPI_FLOAT, &row_block_type);
-    MPI_Type_commit(&row_block_type);
-
     if (rank == 0) {
-        // Il processo 0 traspone prima le proprie righe
-        for (int i = start_row; i < start_row + num_rows; i++) {
+        // Il processo 0 copia il proprio blocco
+        for (int i = 0; i < num_rows; i++) {
             for (int j = 0; j < N; j++) {
                 tam[j][i] = mat[i][j];
             }
         }
 
-        // Riceve e traspone i blocchi dagli altri processi
+        // Riceve i blocchi dagli altri processi
         for (int p = 1; p < size; p++) {
             int other_rows_per_proc = N / size;
             int other_extra = (p < extra_rows ? 1 : 0);
             int other_start = p * rows_per_proc + (p < extra_rows ? p : extra_rows);
             int other_num_rows = other_rows_per_proc + other_extra;
 
-            // Alloca buffer temporaneo per il blocco ricevuto
-            float *temp_block = (float *)malloc(N * other_num_rows * sizeof(float));
+            // Crea tipo specifico per il blocco di questo processo
+            MPI_Datatype recv_column_type;
+            MPI_Type_vector(N, other_num_rows, N, MPI_FLOAT, &recv_column_type);
+            MPI_Type_commit(&recv_column_type);
 
-            // Riceve l'intero blocco in una singola operazione
-            MPI_Recv(temp_block, 1, row_block_type, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            // Riceve il blocco direttamente nella posizione corretta della matrice trasposta
+            MPI_Recv(&tam[0][other_start], 1, recv_column_type, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-            // Traspone il blocco ricevuto
-            for (int i = 0; i < other_num_rows; i++) {
-                for (int j = 0; j < N; j++) {
-                    tam[j][other_start + i] = temp_block[i * N + j];
-                }
-            }
-
-            free(temp_block);
+            MPI_Type_free(&recv_column_type);
         }
     } else {
-        // Gli altri processi inviano il loro blocco intero in una singola operazione
-        MPI_Send(&mat[start_row][0], 1, row_block_type, 0, 0, MPI_COMM_WORLD);
+
+    	// Create datatype for the transposed block
+    	MPI_Datatype transposed_block;
+    	MPI_Type_vector(N, num_rows, num_rows, MPI_FLOAT, &transposed_block);
+    	MPI_Type_commit(&transposed_block);
+
+    	// Transpose locally into a temporary buffer
+    	float *temp_block = (float *)malloc(N * num_rows * sizeof(float));
+    	for (int i = 0; i < num_rows; i++) {
+        	for (int j = 0; j < N; j++) {
+            	temp_block[j * num_rows + i] = mat[start_row + i][j];
+        	}
+    	}
+
+    	// Send the transposed block using the custom datatype
+    	MPI_Send(temp_block, 1, transposed_block, 0, 0, MPI_COMM_WORLD);
+
+    	free(temp_block);
+    	MPI_Type_free(&transposed_block);
+
+
     }
 
-    // Cleanup dei tipi di dato MPI
-    MPI_Type_free(&row_block_type);
 }
 
 
@@ -123,7 +130,7 @@ int main(int argc, char** argv) {
 
     srand(time(NULL));
 
-     FILE *file = fopen("outputBvNB.csv", "a");
+     FILE *file = fopen("output.csv", "a");
      if (file == NULL) {
          perror("Errore nell'apertura del file");
          return 1;

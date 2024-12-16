@@ -70,9 +70,6 @@ void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size
     int start_row = rank * rows_per_proc + (rank < extra_rows ? rank : extra_rows);
     int num_rows = rows_per_proc + (rank < extra_rows ? 1 : 0);
 
-    // Buffer temporaneo per memorizzare una riga
-    float *temp_row = (float *)malloc(N * sizeof(float));
-
     if (rank == 0) {
         // Il processo 0 elabora prima le proprie righe
         for (int i = start_row; i < start_row + num_rows; i++) {
@@ -81,7 +78,7 @@ void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size
             }
         }
 
-        // Poi riceve le righe dagli altri processi
+        // Poi riceve le righe dagli altri processi direttamente in tam
         for (int p = 1; p < size; p++) {
             int other_rows_per_proc = N / size;
             int other_extra = (p < extra_rows ? 1 : 0);
@@ -89,23 +86,24 @@ void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size
             int other_num_rows = other_rows_per_proc + other_extra;
 
             for (int i = other_start; i < other_start + other_num_rows; i++) {
-                MPI_Recv(temp_row, N, MPI_FLOAT, p, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                for (int j = 0; j < N; j++) {
-                    tam[j][i] = temp_row[j];
-                }
+                // Riceve direttamente in tam[j][i] per ogni j
+                MPI_Recv(&tam[0][i], N, MPI_FLOAT, p, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
             }
         }
     } else {
-        // Gli altri processi inviano le proprie righe al processo 0
+        // Gli altri processi traspongono e inviano le proprie righe al processo 0
+        float *temp_row = (float *)malloc(N * sizeof(float));
+
         for (int i = start_row; i < start_row + num_rows; i++) {
+            // Traspone la riga nel buffer temporaneo
             for (int j = 0; j < N; j++) {
                 temp_row[j] = mat[i][j];
             }
             MPI_Send(temp_row, N, MPI_FLOAT, 0, i, MPI_COMM_WORLD);
         }
-    }
 
-    free(temp_row);
+        free(temp_row);
+    }
 }
 
 

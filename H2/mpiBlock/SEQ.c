@@ -53,6 +53,7 @@ void matTranspose(int n, float (*mat)[n], float (*tam)[n]) {
         for (int c = 0; c < n; ++c) tam[c][r] = mat[r][c];
 }
 
+#pragma option_override(matTranspose, "opt(level, 0)")
 void matTransposeBlock(int N, float (*mat)[N], float (*tam)[N], int block_size) {
     // Make sure block_size divides N evenly
     // If not, we'll need to handle edge cases

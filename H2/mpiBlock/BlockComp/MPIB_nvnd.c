@@ -222,7 +222,7 @@ int main(int argc, char** argv) {
 //    }
 //    printf("\n");
 
-
+    total_time_sym = -42;
 
     start_time = MPI_Wtime();
     MatTransposeBlockMPI(n, mat, tam, myrank, size);

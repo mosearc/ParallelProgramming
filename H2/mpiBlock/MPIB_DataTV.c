@@ -358,7 +358,7 @@ int main(int argc, char** argv) {
     // printf("\n");
 
 
-     total_time_sym = 0;
+     total_time_sym = -42;
 
 
 

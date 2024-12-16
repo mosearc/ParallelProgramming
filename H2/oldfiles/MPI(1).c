@@ -67,6 +67,16 @@ void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size
     int start_row = rank * rows_per_proc + (rank < extra_rows ? rank : extra_rows);
     int num_rows = rows_per_proc + (rank < extra_rows ? 1 : 0);
 
+    // Crea il tipo per il blocco di righe (sorgente)
+    MPI_Datatype row_block_type;
+    MPI_Type_contiguous(N * num_rows, MPI_FLOAT, &row_block_type);
+    MPI_Type_commit(&row_block_type);
+
+    // Crea il tipo per il blocco di colonne (destinazione trasposta)
+    MPI_Datatype column_block_type;
+    MPI_Type_vector(N, num_rows, N, MPI_FLOAT, &column_block_type);
+    MPI_Type_commit(&column_block_type);
+
     if (rank == 0) {
         // Il processo 0 copia il proprio blocco
         for (int i = 0; i < num_rows; i++) {
@@ -93,29 +103,25 @@ void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size
             MPI_Type_free(&recv_column_type);
         }
     } else {
+        // Gli altri processi eseguono la trasposizione locale e inviano
+        float *local_transpose = (float *)malloc(N * num_rows * sizeof(float));
 
-    	// Create datatype for the transposed block
-    	MPI_Datatype transposed_block;
-    	MPI_Type_vector(N, num_rows, num_rows, MPI_FLOAT, &transposed_block);
-    	MPI_Type_commit(&transposed_block);
+        // Traspone localmente
+        for (int i = 0; i < num_rows; i++) {
+            for (int j = 0; j < N; j++) {
+                local_transpose[j * num_rows + i] = mat[start_row + i][j];
+            }
+        }
 
-    	// Transpose locally into a temporary buffer
-    	float *temp_block = (float *)malloc(N * num_rows * sizeof(float));
-    	for (int i = 0; i < num_rows; i++) {
-        	for (int j = 0; j < N; j++) {
-            	temp_block[j * num_rows + i] = mat[start_row + i][j];
-        	}
-    	}
+        // Invia il blocco trasposto
+        MPI_Send(local_transpose, N * num_rows, MPI_FLOAT, 0, 0, MPI_COMM_WORLD);
 
-    	// Send the transposed block using the custom datatype
-    	MPI_Send(temp_block, 1, transposed_block, 0, 0, MPI_COMM_WORLD);
-
-    	free(temp_block);
-    	MPI_Type_free(&transposed_block);
-
-
+        free(local_transpose);
     }
 
+    // Cleanup dei tipi MPI
+    MPI_Type_free(&row_block_type);
+    MPI_Type_free(&column_block_type);
 }
 
 
