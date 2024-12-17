@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
 
     srand(time(NULL));
 
-     FILE *file = fopen("output.csv", "a");
+     FILE *file = fopen("outputC.csv", "a");
      if (file == NULL) {
          perror("Errore nell'apertura del file");
          return 1;

@@ -11,7 +11,7 @@
 # Number of nodes, cpus, mpi processors and amount of memory
 #PBS -l select=1:ncpus=96:mpiprocs=96:ompthreads=96:mem=1gb
 #PBS -M mose.arcaro@studenti.unitn.it
-#PBS -m ae
+#PBS -m aeb
 
 # Modules for python and MPI
 module load gcc91
@@ -23,15 +23,19 @@ gcc() {
 }
 gcc --version
 
-touch "info.txt"
+cd /home/mose.arcaro/H2
+
+touch info.txt
 
 # Print the name of the file that contains the list of the nodes assigned to the job and list all the nodes
 NODES=$(cat $PBS_NODEFILE)
 echo The running nodes are $NODES >> info.txt
+echo -e "\n" >> info.txt  # Add a blank line between nodes
 
 # Get the list of unique nodes assigned to the job
 NODES=$(sort -u $PBS_NODEFILE)
 echo The running nodes are $NODES >> info.txt
+echo -e "\n" >> info.txt  # Add a blank line between nodes
 
 # Loop through each node and get architecture information
 for NODE in $NODES; do
@@ -41,7 +45,7 @@ for NODE in $NODES; do
 done
 
 # Select the working directory
-cd /home/mose.arcaro/H2/BaseVsAlltoallVsDatatype
+cd BaseVsAlltoallVsDatatype
 
 # the code should be previously compiled
 #mpicc code_mpi.c -o code.out
@@ -92,8 +96,8 @@ for (( k = 16; k <= 4096; k=k*2 )); do
 
 done
 
-#python3
-#python3
+python3 mean.py output.csv
+
 
 cd ..
 cd comp
@@ -130,8 +134,8 @@ for (( k = 16; k <= 4096; k=k*2 )); do
 
 done
 
-#python3
-#python3
+python3 mean.py outputC.csv
+python3 ses.py outputC_processed.csv
 
 cd ..
 cd mpiBlock
@@ -181,12 +185,11 @@ for (( k = 16; k <= 4096; k=k*2 )); do
 
 done
 
-#python3
-#python3
+python3 mean.py outputBlock.csv
 
 cd ..
 
-#comparison no blocking vs blocking (graph)
+#comparison no blocked vs blockied (graph)
 touch outputBvNB.csv
 echo "Processes,Dim,CheckSym,MatTranspose,Version" > outputBvNB.csv
 
@@ -218,8 +221,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
 
 done
 
-#python3
-#python3
-
+python3 mean.py outputBvNB.csv
+python3 ses.py outputBvNB_processed.csv
 
 
