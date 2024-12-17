@@ -10,6 +10,9 @@
 #PBS -l walltime=01:00:00
 # Number of nodes, cpus, mpi processors and amount of memory
 #PBS -l select=1:ncpus=96:mpiprocs=96:ompthreads=96:mem=1gb
+#PBS -M mose.arcaro@studenti.unitn.it
+#PBS -m abe
+
 
 # Modules for python and MPI
 module load gcc91

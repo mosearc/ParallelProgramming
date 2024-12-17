@@ -7,9 +7,11 @@
 # Queue name
 #PBS -q short_cpuQ
 # Set the maximum wall time
-#PBS -l walltime=01:00:00
+#PBS -l walltime=02:00:00
 # Number of nodes, cpus, mpi processors and amount of memory
 #PBS -l select=1:ncpus=96:mpiprocs=96:ompthreads=96:mem=1gb
+#PBS -M mose.arcaro@studenti.unitn.it
+#PBS -m ae
 
 # Modules for python and MPI
 module load gcc91
@@ -21,19 +23,21 @@ gcc() {
 }
 gcc --version
 
+touch "info.txt"
 
 # Print the name of the file that contains the list of the nodes assigned to the job and list all the nodes
 NODES=$(cat $PBS_NODEFILE)
-echo The running nodes are $NODES
+echo The running nodes are $NODES >> info.txt
 
 # Get the list of unique nodes assigned to the job
 NODES=$(sort -u $PBS_NODEFILE)
-echo The running nodes are $NODES
+echo The running nodes are $NODES >> info.txt
 
 # Loop through each node and get architecture information
 for NODE in $NODES; do
-    echo "Node: $NODE"
-    ssh $NODE "lscpu"
+    echo "Node: $NODE" >> info.txt
+    ssh $NODE "lscpu" >> info.txt
+    echo -e "\n" >> info.txt  # Add a blank line between nodes
 done
 
 # Select the working directory
