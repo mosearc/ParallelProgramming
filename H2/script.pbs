@@ -137,6 +137,47 @@ done
 python3 mean.py outputC.csv
 python3 ses.py outputC_processed.csv
 
+cd Scaling
+
+touch outputSc.csv
+echo "Processes,Dim,CheckSym,MatTranspose,Version" > outputSc.csv
+
+mpicc MPI_DataT.c -o MPI_DataT
+gcc -o OMP OMP.c -fopenmp
+
+for (( k = 16; k <= 4096; k=k*2 )); do
+  m=1
+  z=$k
+  while [ $z -le 4096 ] && [ $m -le 96 ]
+  do
+
+    for i in {1..5}
+    do
+      export OMP_NUM_THREADS="$m"; ./OMP "$z" "$m"
+    done
+    m=$((m*2))
+    z=$((k*m))
+  done
+
+  m=1
+  z=$k
+  while [ $z -le 4096 ] && [ $m -le 96 ]
+  do
+
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPIB_DataTV "$z" "$m"
+    done
+    m=$((m*2))
+    z=$((k*m))
+  done
+done
+
+python3 mean.py outputSc.csv0
+python3 scaling_script.py outputSc_processed.csv
+
+cd ..
+
 cd ..
 cd mpiBlock
 cd BlockComp
@@ -223,5 +264,46 @@ done
 
 python3 mean.py outputBvNB.csv
 python3 ses.py outputBvNB_processed.csv
+
+cd Scaling
+
+touch outputSc.csv
+echo "Processes,Dim,CheckSym,MatTranspose,Version" > outputSc.csv
+
+mpicc MPI_DataT.c -o MPI_DataT
+mpicc MPIB_DataTV.c -o MPIB_DataTV -lm
+
+for (( k = 16; k <= 4096; k=k*2 )); do
+  m=1
+  z=$k
+  while [ $z -le 4096 ] && [ $m -le 96 ]
+  do
+
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPI_DataT "$z" "$m"
+    done
+
+    m=$((m*2))
+    z=$((k*m))
+  done
+
+  m=1
+  z=$k
+  while [ $z -le 4096 ] && [ $m -le 96 ]
+  do
+
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPIB_DataTV "$z" "$m"
+    done
+
+    m=$((m*2))
+    z=$((k*m))
+  done
+done
+
+python3 mean.py outputSc.csv
+python3 scaling_script.py outputSc_processed.csv
 
 
