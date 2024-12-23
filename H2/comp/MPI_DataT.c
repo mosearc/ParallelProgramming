@@ -158,10 +158,10 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    if(size>n){
-      	printf("This implementation requires the number of the row at most equal at the number of the number of processors\n");
-    	MPI_Abort(MPI_COMM_WORLD, 1);
-    }
+//    if(size>n){
+//      	printf("This implementation requires the number of the row at most equal at the number of the number of processors\n");
+//    	MPI_Abort(MPI_COMM_WORLD, 1);
+//    }
 
     if (myrank == 0) {
       init_mat(n, mat);

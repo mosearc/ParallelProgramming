@@ -7,7 +7,7 @@
 # Queue name
 #PBS -q short_cpuQ
 # Set the maximum wall time
-#PBS -l walltime=02:00:00
+#PBS -l walltime=02:30:00
 # Number of nodes, cpus, mpi processors and amount of memory
 #PBS -l select=1:ncpus=96:mpiprocs=96:ompthreads=96:mem=1gb
 #PBS -M mose.arcaro@studenti.unitn.it
@@ -68,7 +68,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
   done
 
   mpicc MPI_Base.c -o MPI_Base
-  for (( m = 1; m <= k && m <= 96; m++ )); do ########!
+  for (( m = 1; m <= 96; m++ )); do ########!
     for i in {1..5}
     do
       mpirun -np "$m" ./MPI_Base "$k" "$m"
@@ -86,7 +86,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
   fi
 
   mpicc MPI_DataT.c -o MPI_DataT
-  for (( m = 1; m <= k && m <= 96; m++ )); do
+  for (( m = 1; m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPI_DataT "$k" "$m"
@@ -124,7 +124,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
   done
 
   mpicc MPI_DataT.c -o MPI_DataT
-  for (( m = 1; m <= k && m <= 96; m++ )); do
+  for (( m = 1; m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPI_DataT "$k" "$m"
@@ -148,7 +148,7 @@ echo "Processes,Dim,CheckSym,MatTranspose,Version" > outputBlock.csv
 for (( k = 16; k <= 4096; k=k*2 )); do
 
   mpicc MPIB_Basic.c -o MPIB_Basic -lm
-  for (( m = 1; m <= k && m <= 96; m++ )); do
+  for (( m = 1; m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPIB_Basic "$k" "$m"
@@ -157,7 +157,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
   done
 
   mpicc MPIB_DataTV.c -o MPIB_DataTV -lm
-  for (( m = 1; m <= k && m <= 96; m++ )); do
+  for (( m = 1; m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPIB_DataTV "$k" "$m"
@@ -166,7 +166,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
   done
 
   mpicc MPIB_nvnd.c -o MPIB_nvnd -lm
-  for (( m = 1; m <= k && m <= 96; m++ )); do
+  for (( m = 1; m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPIB_nvnd "$k" "$m"
@@ -175,7 +175,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
   done
 
   mpicc MPIB_onlyD.c -o MPIB_onlyD -lm
-  for (( m = 1; m <= k && m <= 96; m++ )); do
+  for (( m = 1; m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPIB_onlyD "$k" "$m"
@@ -202,7 +202,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
   done
 
   mpicc MPIB_DataTV.c -o MPIB_DataTV -lm
-  for (( m = 1; m <= k && m <= 96; m++ )); do
+  for (( m = 1; m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPIB_DataTV "$k" "$m"
@@ -211,7 +211,7 @@ for (( k = 16; k <= 4096; k=k*2 )); do
   done
 
   mpicc MPI_DataT.c -o MPI_DataT
-  for (( m = 1; m <= k && m <= 96; m++ )); do
+  for (( m = 1; m <= 96; m++ )); do
     for i in {1..5}
     do
       mpirun -np "$m" ./MPI_DataT "$k" "$m"
