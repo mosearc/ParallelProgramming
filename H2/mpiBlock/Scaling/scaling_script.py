@@ -24,7 +24,7 @@ def calculate_scaling(input_file, output_file):
         else:
             scaling.append(None)
 
-    df['scaling'] = scaling
+    df['scaling_RollingMean_MatTranspose'] = scaling
 
     # Salva il risultato in un nuovo file
     df.to_csv(output_file, index=False)

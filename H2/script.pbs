@@ -166,14 +166,14 @@ for (( k = 16; k <= 4096; k=k*2 )); do
 
     for i in {1..5}
     do
-      mpirun -np "$m" ./MPIB_DataTV "$z" "$m"
+      mpirun -np "$m" ./MPI_DataT "$z" "$m"
     done
     m=$((m*2))
     z=$((k*m))
   done
 done
 
-python3 mean.py outputSc.csv0
+python3 mean.py outputSc.csv
 python3 scaling_script.py outputSc_processed.csv
 
 cd ..
