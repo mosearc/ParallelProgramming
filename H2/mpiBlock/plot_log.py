@@ -26,7 +26,7 @@ def generate_graphs(file_path):
             plt.axhline(
                 y=seq_dim_data['RollingMean_MatTranspose'].iloc[0],
                 color='green', linestyle='--',
-                label='SEQ RollingMean_MatTranspose'
+                label='SEQ - MatTranspose'
             )
 
         # Non-SEQ versions for the same Dim
@@ -45,9 +45,9 @@ def generate_graphs(file_path):
         plt.yscale('log')
 
         # Plot formatting
-        plt.title(f"Trends for Dim={dim} (Log Scale)")
+        plt.title(f"Time for Dim={dim} (Log Scale)")
         plt.xlabel("Processes")
-        plt.ylabel("Rolling Mean Values (Log Scale)")
+        plt.ylabel("time (Log Scale)")
         plt.legend()
         plt.grid(True, which="both", linestyle="--", linewidth=0.5)
         plt.tight_layout()

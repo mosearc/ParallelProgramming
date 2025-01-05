@@ -30,20 +30,20 @@ def generate_plots(input_file):
             if not omp_data.empty:
                 plt.plot(omp_data['Threads/Proc'], omp_data[column], label=f'OMP - {column}', marker='o', linestyle='-', linewidth=2)
             if not mpi_data.empty:
-                plt.plot(mpi_data['Threads/Proc'], mpi_data[column], label=f'MPI DT - {column}', marker='s', linestyle='--', linewidth=2)
+                plt.plot(mpi_data['Threads/Proc'], mpi_data[column], label=f'MPI - {column}', marker='s', linestyle='--', linewidth=2)
 
         # Linea diagonale di riferimento
         max_threads = dim_data['Threads/Proc'].max()
         diagonal_x = range(0, max_threads + 1, max(1, max_threads // 10))
         diagonal_y = diagonal_x
-        plt.plot(diagonal_x, diagonal_y, label='Diagonal (1:1)', linestyle='--', color='gray', linewidth=1)
+        plt.plot(diagonal_x, diagonal_y, label='Diagonal', linestyle='--', color='gray', linewidth=1)
 
         #plt.yscale('log')
 
         # Dettagli del grafico
-        plt.title(f"Comparison of {', '.join(columns_to_plot)} vs Threads for Dim {dim}")
-        plt.xlabel('Threads')
-        plt.ylabel('Value')
+        plt.title(f"Speedup & Efficiency for Dim {dim}")
+        plt.xlabel('Threads/Processes')
+        plt.ylabel('Time')
         plt.legend()
         plt.grid(True)
 

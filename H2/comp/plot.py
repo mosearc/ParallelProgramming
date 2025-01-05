@@ -25,12 +25,12 @@ def generate_graphs(file_path):
             plt.axhline(
                 y=seq_dim_data['RollingMean_CheckSym'].iloc[0],
                 color='blue', linestyle='--',
-                label='SEQ RollingMean_CheckSym'
+                label='SEQ - CheckSym'
             )
             plt.axhline(
                 y=seq_dim_data['RollingMean_MatTranspose'].iloc[0],
                 color='green', linestyle='--',
-                label='SEQ RollingMean_MatTranspose'
+                label='SEQ - MatTranspose'
             )
 
         # Non-SEQ versions for the same Dim
@@ -50,9 +50,9 @@ def generate_graphs(file_path):
             )
 
         # Plot formatting
-        plt.title(f"Trends for Dim={dim}")
+        plt.title(f"Time for Dim={dim}")
         plt.xlabel("Threads/Proc")
-        plt.ylabel("Rolling Mean Values")
+        plt.ylabel("Time")
         plt.legend()
         plt.grid(True)
         plt.tight_layout()

@@ -31,18 +31,18 @@ def plot_scaling_trends(file_path):
 
                 # Tracciare entrambe le metriche
                 plt.plot(group['Processes'], group['scaling_RollingMean_MatTranspose'],
-                         marker='o', label=f'{version} - MatTranspose (Gruppo {group_id})')
+                         marker='o', label=f'{version} - MatTranspose ')
                 plt.plot(group['Processes'], group['scaling_RollingMean_CheckSym'],
-                         marker='s', label=f'{version} - CheckSym (Gruppo {group_id})')
+                         marker='s', label=f'{version} - CheckSym ')
 
         # Aggiungere la linea di riferimento 1/x
         x_values = np.linspace(df['Processes'].min(), df['Processes'].max(), 100)
         y_values = 1 / x_values
-        plt.plot(x_values, y_values, linestyle='--', label='Riferimento 1/x', color='black')
+        plt.plot(x_values, y_values, linestyle='--', label='Linear Ref', color='black')
 
-        plt.title('Confronto scaling_RollingMean tra MPI DT e OMP con riferimento 1/x')
-        plt.xlabel('Processes')
-        plt.ylabel('scaling_RollingMean')
+        plt.title('Scaling MPI and OMP versions')
+        plt.xlabel('Proc/Threads')
+        plt.ylabel('Time')
         plt.legend()
         plt.grid(True)
 

@@ -29,16 +29,16 @@ def plot_scaling_trends(file_path):
                 group_id, group = grouped_versions[i + j]
                 version = group['Version'].iloc[0]
                 plt.plot(group['Processes'], group['scaling_RollingMean_MatTranspose'],
-                         marker='o', label=f'{version} (Gruppo {group_id})')
+                         marker='o', label=f'{version} ')
 
         # Aggiungere la linea di riferimento 1/x
         x_values = np.linspace(df['Processes'].min(), df['Processes'].max(), 100)
         y_values = 1 / x_values
-        plt.plot(x_values, y_values, linestyle='--', label='Riferimento 1/x', color='black')
+        plt.plot(x_values, y_values, linestyle='--', label='Linear Ref', color='black')
 
-        plt.title('Confronto scaling_RollingMean_MatTranspose tra MPI DT e MPI BDV con riferimento 1/x')
+        plt.title('Scaling MPI Block & MPI')
         plt.xlabel('Processes')
-        plt.ylabel('scaling_RollingMean_MatTranspose')
+        plt.ylabel('Time')
         plt.legend()
         plt.grid(True)
 
