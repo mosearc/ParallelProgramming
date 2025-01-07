@@ -38,7 +38,7 @@ def plot_scaling_trends(file_path):
 
         plt.title('Scaling MPI Block & MPI')
         plt.xlabel('Processes')
-        plt.ylabel('Time')
+        plt.ylabel('Times')
         plt.legend()
         plt.grid(True)
 

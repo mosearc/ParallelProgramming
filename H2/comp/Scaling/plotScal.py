@@ -42,7 +42,7 @@ def plot_scaling_trends(file_path):
 
         plt.title('Scaling MPI and OMP versions')
         plt.xlabel('Proc/Threads')
-        plt.ylabel('Time')
+        plt.ylabel('Times')
         plt.legend()
         plt.grid(True)
 

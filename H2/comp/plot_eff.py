@@ -43,7 +43,7 @@ def generate_plots(input_file):
         # Dettagli del grafico
         plt.title(f"Speedup & Efficiency for Dim {dim}")
         plt.xlabel('Threads/Processes')
-        plt.ylabel('Time')
+        plt.ylabel('Times')
         plt.legend()
         plt.grid(True)
 
