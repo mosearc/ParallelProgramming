@@ -3,9 +3,9 @@
 Optimizing Square Matrix Symmetry Verification and Transposition Using Implicit Parallelization Techniques, OpenMP and MPI
 
 ## Assignment links
-For H1:  [H1 (Implicit Parallelization and OpenMP)](#h1) 
+For H1 (H1 Folder) :  [H1 (Implicit Parallelization and OpenMP)](#h1) 
 
-For H2:  [H2 (OpenMP and MPI)](#h2) 
+For H2 (H2 Folder) :  [H2 (OpenMP and MPI)](#h2) 
 
 
 # H1
