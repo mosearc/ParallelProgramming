@@ -31,13 +31,7 @@ void init_mat(int n, float(* mat)[n] ) {
 void checkSymMPI(int n, float(* mat)[n], int myrank, int size, int *tot) {
     int ret_val = 1;
 
-//    int rows_per_proc = n / size;
-//    int start_row = myrank * rows_per_proc;
-//    int end_row = start_row + rows_per_proc;
-//
-//    if (myrank == size - 1) {
-//        end_row = n;
-//    }
+
 
     int base_rows_per_proc = n / size;
 	int remainder_rows = n % size;
@@ -61,45 +55,45 @@ void checkSymMPI(int n, float(* mat)[n], int myrank, int size, int *tot) {
 
 
 void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size) {
-    // Calcola quante righe gestirà ogni processo
+
     int rows_per_proc = N / size;
     int extra_rows = N % size;
     int start_row = rank * rows_per_proc + (rank < extra_rows ? rank : extra_rows);
     int num_rows = rows_per_proc + (rank < extra_rows ? 1 : 0);
 
     if (rank == 0) {
-        // Il processo 0 copia il proprio blocco
+
         for (int i = 0; i < num_rows; i++) {
             for (int j = 0; j < N; j++) {
                 tam[j][i] = mat[i][j];
             }
         }
 
-        // Riceve i blocchi dagli altri processi
+
         for (int p = 1; p < size; p++) {
             int other_rows_per_proc = N / size;
             int other_extra = (p < extra_rows ? 1 : 0);
             int other_start = p * rows_per_proc + (p < extra_rows ? p : extra_rows);
             int other_num_rows = other_rows_per_proc + other_extra;
 
-            // Crea tipo specifico per il blocco di questo processo
+
             MPI_Datatype recv_column_type;
             MPI_Type_vector(N, other_num_rows, N, MPI_FLOAT, &recv_column_type);
             MPI_Type_commit(&recv_column_type);
 
-            // Riceve il blocco direttamente nella posizione corretta della matrice trasposta
+
             MPI_Recv(&tam[0][other_start], 1, recv_column_type, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
             MPI_Type_free(&recv_column_type);
         }
     } else {
 
-    	// Create datatype for the transposed block
+
     	MPI_Datatype transposed_block;
     	MPI_Type_vector(N, num_rows, num_rows, MPI_FLOAT, &transposed_block);
     	MPI_Type_commit(&transposed_block);
 
-    	// Transpose locally into a temporary buffer
+
     	float *temp_block = (float *)malloc(N * num_rows * sizeof(float));
     	for (int i = 0; i < num_rows; i++) {
         	for (int j = 0; j < N; j++) {
@@ -107,7 +101,7 @@ void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size
         	}
     	}
 
-    	// Send the transposed block using the custom datatype
+
     	MPI_Send(temp_block, 1, transposed_block, 0, 0, MPI_COMM_WORLD);
 
     	free(temp_block);
@@ -158,24 +152,12 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-//    if(size>n){
-//      	printf("This implementation requires the number of the row at most equal at the number of the number of processors\n");
-//    	MPI_Abort(MPI_COMM_WORLD, 1);
-//    }
+
 
     if (myrank == 0) {
       init_mat(n, mat);
     }
 
-
-    //printf("Rank: %d\n", myrank);
-//    for (int i = 0; i < n; i++) {
-//      for (int j = 0; j < n; j++) {
-//        printf("%f ", mat[i][j]);
-//      }
-//      printf("\n");
-//    }
-//    printf("\n");
 
     start_time_sym = MPI_Wtime();
     MPI_Bcast(mat, n*n, MPI_FLOAT, 0, MPI_COMM_WORLD);

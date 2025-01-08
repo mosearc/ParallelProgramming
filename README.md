@@ -7,6 +7,8 @@ For H1 (H1 Folder) :  [H1 (Implicit Parallelization and OpenMP)](#h1)
 
 For H2 (H2 Folder) :  [H2 (OpenMP and MPI)](#h2) 
 
+---
+
 
 # H1
 
@@ -123,6 +125,7 @@ H2/
 |              ├── MPIB_DataTV.c -> using MPI Datatypes and Variable communicators
 |              ├── MPIB_nvnd.c -> only using
 |              └── MPIB_onlyD.c -> only using datatypes
+├── info.txt -> the UniTN HPC node info
 ├── H2.pdf -> a pdf version of the paper of the project
 └── script.pbs
 ```

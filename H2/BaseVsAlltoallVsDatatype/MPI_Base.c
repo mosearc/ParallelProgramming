@@ -31,13 +31,6 @@ void init_mat(int n, float(* mat)[n] ) {
 void checkSymMPI(int n, float(* mat)[n], int myrank, int size, int *tot) {
     int ret_val = 1;
 
-//    int rows_per_proc = n / size;
-//    int start_row = myrank * rows_per_proc;
-//    int end_row = start_row + rows_per_proc;
-//
-//    if (myrank == size - 1) {
-//        end_row = n;
-//    }
 
     int base_rows_per_proc = n / size;
 	int remainder_rows = n % size;
@@ -62,26 +55,26 @@ void checkSymMPI(int n, float(* mat)[n], int myrank, int size, int *tot) {
 
 
 void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size) {
-    // Calcola quante righe gestirà ogni processo
+
     int rows_per_proc = N / size;
     int extra_rows = N % size;
 
-    // Calcola l'indice di inizio e fine per questo processo
+
     int start_row = rank * rows_per_proc + (rank < extra_rows ? rank : extra_rows);
     int num_rows = rows_per_proc + (rank < extra_rows ? 1 : 0);
 
-    // Buffer temporaneo per una singola riga
+
     float *row_buffer = (float *)malloc(N * sizeof(float));
 
     if (rank == 0) {
-        // Il processo 0 traspone e inserisce direttamente le proprie righe
+
         for (int i = 0; i < num_rows; i++) {
             for (int j = 0; j < N; j++) {
                 tam[j][start_row + i] = mat[start_row + i][j];
             }
         }
 
-        // Riceve e inserisce direttamente le righe dagli altri processi
+
         for (int p = 1; p < size; p++) {
             int other_rows_per_proc = N / size;
             int other_extra = (p < extra_rows ? 1 : 0);
@@ -89,22 +82,22 @@ void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size
             int other_num_rows = other_rows_per_proc + other_extra;
 
             for (int i = 0; i < other_num_rows; i++) {
-                // Riceve una riga alla volta
+
                 MPI_Recv(row_buffer, N, MPI_FLOAT, p, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                // Inserisce direttamente nella posizione corretta di tam
+
                 for (int j = 0; j < N; j++) {
                     tam[j][other_start + i] = row_buffer[j];
                 }
             }
         }
     } else {
-        // Gli altri processi preparano e inviano le righe trasposte
+
         for (int i = 0; i < num_rows; i++) {
-            // Prepara la riga trasposta
+
             for (int j = 0; j < N; j++) {
                 row_buffer[j] = mat[start_row + i][j];
             }
-            // Invia la riga trasposta
+
             MPI_Send(row_buffer, N, MPI_FLOAT, 0, 0, MPI_COMM_WORLD);
         }
     }
@@ -152,24 +145,13 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-//    if(size>n){
-//      	printf("This implementation requires the number of the row at most equal at the number of the number of processors\n");
-//    	MPI_Abort(MPI_COMM_WORLD, 1);
-//    }
+
 
     if (myrank == 0) {
       init_mat(n, mat);
     }
 
 
-    //printf("Rank: %d\n", myrank);
-//    for (int i = 0; i < n; i++) {
-//      for (int j = 0; j < n; j++) {
-//        printf("%f ", mat[i][j]);
-//      }
-//      printf("\n");
-//    }
-//    printf("\n");
 
     start_time_sym = MPI_Wtime();
     MPI_Bcast(mat, n*n, MPI_FLOAT, 0, MPI_COMM_WORLD);
@@ -178,7 +160,7 @@ int main(int argc, char** argv) {
     total_time_sym = end_time_sym - start_time_sym;
 
     if (myrank == 0) {
-//      printf("sym: %d\n", *sym);
+
         if (*sym) {
             printf("is sym\n");
         } else {

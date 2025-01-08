@@ -4,26 +4,21 @@ import sys
 import os
 
 def generate_plots(input_file):
-    # Caricare i dati
+
     data = pd.read_csv(input_file)
 
-    # Controllare che le colonne necessarie esistano
     required_columns = ['Dim', 'Processes', 'Version', 'SpeedupMatTrans', 'EfficiencyMatTrans']
     if not all(col in data.columns for col in required_columns):
         raise ValueError("Il file deve contenere le colonne: " + ", ".join(required_columns))
 
-    # Colonne da tracciare
     columns_to_plot = ['SpeedupMatTrans', 'EfficiencyMatTrans']
 
-    # Filtrare per ogni valore unico di Dim
     for dim in data['Dim'].unique():
         dim_data = data[data['Dim'] == dim]
 
-        # Suddividere i dati per Version
         omp_data = dim_data[dim_data['Version'] == 'MPI BDV']
         mpi_data = dim_data[dim_data['Version'] == 'MPI DT']
 
-        # Creare il grafico
         plt.figure(figsize=(12, 8))
 
         for column in columns_to_plot:
@@ -32,7 +27,6 @@ def generate_plots(input_file):
             if not mpi_data.empty:
                 plt.plot(mpi_data['Processes'], mpi_data[column], label=f'MPI - {column}', marker='s', linestyle='--', linewidth=2)
 
-        # Linea diagonale di riferimento
         max_threads = dim_data['Processes'].max()
         diagonal_x = range(0, max_threads + 1, max(1, max_threads // 10))
         diagonal_y = diagonal_x
@@ -40,14 +34,13 @@ def generate_plots(input_file):
 
         #plt.yscale('log')
 
-        # Dettagli del grafico
+
         plt.title(f"Speedup & Efficiency for Dim {dim}")
         plt.xlabel('Proc')
         plt.ylabel('Times')
         plt.legend()
         plt.grid(True)
 
-        # Salvare il grafico
         output_plot_file = f"{os.path.splitext(input_file)[0]}_Dim{dim}_OMP_MPI_comparison_plot.png"
         plt.savefig(output_plot_file)
         plt.close()

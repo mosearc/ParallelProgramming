@@ -3,15 +3,13 @@ import argparse
 import os
 
 def calculate_scaling(input_file, output_file):
-    # Carica il file CSV
+
     df = pd.read_csv(input_file)
 
-    # Controlla che le colonne necessarie esistano
     required_columns = ['Processes', 'RollingMean_MatTranspose', 'RollingMean_CheckSym']
     if not all(col in df.columns for col in required_columns):
         raise ValueError("Il file deve contenere le colonne 'Processes', 'RollingMean_MatTranspose' e 'RollingMean_CheckSym'.")
 
-    # Calcola la colonna "scaling_RollingMean_MatTranspose"
     scaling_mat = []
     scaling_value_mat = None
 
@@ -25,7 +23,7 @@ def calculate_scaling(input_file, output_file):
 
     df['scaling_RollingMean_MatTranspose'] = scaling_mat
 
-    # Calcola la colonna "scaling_RollingMean_CheckSym"
+
     scaling_sym = []
     scaling_value_sym = None
 
@@ -39,21 +37,18 @@ def calculate_scaling(input_file, output_file):
 
     df['scaling_RollingMean_CheckSym'] = scaling_sym
 
-    # Salva il risultato in un nuovo file
     df.to_csv(output_file, index=False)
     print(f"File salvato con successo come: {output_file}")
 
 
 if __name__ == "__main__":
-    # Parser degli argomenti da riga di comando
+
     parser = argparse.ArgumentParser(description='Calcola le colonne "scaling_RollingMean_MatTranspose" e "scaling_RollingMean_CheckSym" in un file CSV.')
     parser.add_argument('input_file', type=str, help='Percorso del file CSV di input')
     parser.add_argument('--output', type=str, default=None, help='Percorso del file CSV di output (opzionale)')
 
     args = parser.parse_args()
 
-    # Definisci il file di output se non è specificato
     output_file = args.output if args.output else os.path.splitext(args.input_file)[0] + '_with_scaling.csv'
 
-    # Esegui la funzione principale
     calculate_scaling(args.input_file, output_file)

@@ -5,22 +5,18 @@ import sys
 import os
 
 def plot_scaling_trends(file_path):
-    # Caricare il file CSV
+
     df = pd.read_csv(file_path)
 
-    # Creare una cartella per salvare i grafici
     output_dir = 'grafici_scaling'
     os.makedirs(output_dir, exist_ok=True)
 
-    # Aggiungere colonna per rilevare i cambi di versione
     df['Version_Change'] = df['Version'] != df['Version'].shift()
     df['Group'] = df['Version_Change'].cumsum()
 
-    # Raggruppare per gruppi distinti di versioni
     version_groups = df.groupby('Group')
     grouped_versions = list(version_groups)
 
-    # Creare grafici a coppie con la linea di riferimento 1/x
     for i in range(0, len(grouped_versions), 2):
         plt.figure(figsize=(12, 7))
 
@@ -31,7 +27,6 @@ def plot_scaling_trends(file_path):
                 plt.plot(group['Processes'], group['scaling_RollingMean_MatTranspose'],
                          marker='o', label=f'{version} ')
 
-        # Aggiungere la linea di riferimento 1/x
         x_values = np.linspace(df['Processes'].min(), df['Processes'].max(), 100)
         y_values = 1 / x_values
         plt.plot(x_values, y_values, linestyle='--', label='Linear Ref', color='black')
@@ -42,7 +37,6 @@ def plot_scaling_trends(file_path):
         plt.legend()
         plt.grid(True)
 
-        # Salvare il grafico come PNG
         output_file = os.path.join(output_dir, f'confronto_scaling_gruppo_{i//2 + 1}.png')
         plt.savefig(output_file, bbox_inches='tight')
         print(f"Grafico salvato in: {output_file}")

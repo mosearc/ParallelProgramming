@@ -31,14 +31,6 @@ void init_mat(int n, float(* mat)[n] ) {
 void checkSymMPI(int n, float(* mat)[n], int myrank, int size, int *tot) {
     int ret_val = 1;
 
-//    int rows_per_proc = n / size;
-//    int start_row = myrank * rows_per_proc;
-//    int end_row = start_row + rows_per_proc;
-//
-//    if (myrank == size - 1) {
-//        end_row = n;
-//    }
-
     int base_rows_per_proc = n / size;
 	int remainder_rows = n % size;
  	int rows_per_proc = base_rows_per_proc + (myrank < remainder_rows ? 1 : 0);
@@ -59,8 +51,8 @@ void checkSymMPI(int n, float(* mat)[n], int myrank, int size, int *tot) {
     //printf("Rank %d successfully completed with %d\n", myrank, *tot);
 }
 
-void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size) {
-    // Works only when N equals size and matrix can be evenly divided
+void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size) { // Works only when N equals size and matrix can be evenly divided, each process will handle exactly one row of the matrix
+
     if (N != size) {
         if (rank == 0) {
             printf("This implementation requires N == size\n");
@@ -68,51 +60,51 @@ void MatTransposeMPI(int N, float (*mat)[N], float (*tam)[N], int rank, int size
         return;
     }
 
-    // Each process will handle exactly one row of the matrix
+
     int rows_per_proc = 1;
 
-    // Allocate local arrays
+
     float* local_matrix = (float*)malloc(N * sizeof(float));  // One row per process
     if (!local_matrix) {
         printf("Memory allocation failed for local_matrix on process %d\n", rank);
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    // Scatter the matrix - each process gets one row
+
     MPI_Scatter(mat, N, MPI_FLOAT,
                 local_matrix, N, MPI_FLOAT,
                 0, MPI_COMM_WORLD);
 
-    // Allocate send buffer for transpose operation
+
     float* send_buffer = (float*)malloc(N * sizeof(float));
     if (!send_buffer) {
         printf("Memory allocation failed for send_buffer on process %d\n", rank);
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    // Copy and reorder data for sending
+
     for (int i = 0; i < N; i++) {
         send_buffer[i] = local_matrix[i];
     }
 
-    // Allocate receive buffer for transposed data
+
     float* local_transpose = (float*)malloc(N * sizeof(float));
     if (!local_transpose) {
         printf("Memory allocation failed for local_transpose on process %d\n", rank);
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    // Perform all-to-all communication
+
     MPI_Alltoall(send_buffer, 1, MPI_FLOAT,
                  local_transpose, 1, MPI_FLOAT,
                  MPI_COMM_WORLD);
 
-    // Gather the transposed matrix
+
     MPI_Gather(local_transpose, N, MPI_FLOAT,
                tam, N, MPI_FLOAT,
                0, MPI_COMM_WORLD);
 
-    // Cleanup
+
     free(local_matrix);
     free(local_transpose);
     free(send_buffer);
