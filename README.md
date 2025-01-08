@@ -3,14 +3,13 @@
 Optimizing Square Matrix Symmetry Verification and Transposition Using Implicit Parallelization Techniques, OpenMP and MPI
 
 ## Assignment links
-For H1 (H1 Folder) :  [H1 (Implicit Parallelization and OpenMP)](#h1) 
+For H1 (H1 Folder) :  [H1 (Implicit Parallelization and OpenMP)](#h1---implicit-parallelization-and-openmp) 
 
-For H2 (H2 Folder) :  [H2 (OpenMP and MPI)](#h2) 
+For H2 (H2 Folder) :  [H2 (OpenMP and MPI)](#h2---mpi-and-openmp) 
 
----
+***
 
-
-# H1
+# H1 - Implicit Parallelization and OpenMP
 
 The folders contains the c codes and some python scripts to simplify and automatize the data elaboration and procurement.
 Each folder represents a version: Imp* folders represent optimized sequential versions, Omp* folders represent parallelized versions with OpenMP.
@@ -92,7 +91,7 @@ For bandwidth calculation, formulas must then be applied manually.
 
 ---
 
-# H2
+# H2 - MPI and OpenMP
 
 The folder contain the c codes and some python scripts to simplify and automatize the data elaboration and procurement.
 Inside each folder there is a "Data" folder containing all related data: *_processed.csv contains the data for Transposition and Check symmetry; *_processed_SpeeEff.csv, if present, collects data related to Speedup, Efficiency and Scaling.
@@ -155,7 +154,7 @@ module load python-3.7.2
 
 Then enter the desired version folder 
 ```bash
-cd <desired comp version>
+cd <desired folder>
 ```
 and run:
 ```python
