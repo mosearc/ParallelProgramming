@@ -3,9 +3,16 @@
 Optimizing Square Matrix Symmetry Verification and Transposition Using Implicit Parallelization Techniques, OpenMP and MPI
 
 ## Assignment links
-For H1 (H1 Folder) :  [H1 (Implicit Parallelization and OpenMP)](#h1---implicit-parallelization-and-openmp) 
+For H1 (H1 Folder) :  [H1 (Implicit Parallelization and OpenMP)](#h1---implicit-parallelization-and-openmp) <br>
+    - [Requirements](#requirements) <br>
+    - [Project Structure](#project-structure) <br>
+    - [Execution](#execution) <br>
+    
 
-For H2 (H2 Folder) :  [H2 (OpenMP and MPI)](#h2---mpi-and-openmp) 
+For H2 (H2 Folder) :  [H2 (OpenMP and MPI)](#h2---mpi-and-openmp) <br>
+    - [Requirements](#requirements-1) <br>
+    - [Project Structure](#project-structure-1) <br>
+    - [Execution](#execution-1) <br>
 
 ***
 
@@ -107,7 +114,6 @@ In mpiBlock folder we can find the algorithms that divide the matrix in block, s
 - Python 3.7.2
 
 ## Project Structure
-
 ```
 H2/
 ├── BaseVsAlltoallVsDatatype/ -> confront among different MPI versions
@@ -128,6 +134,8 @@ H2/
 ├── H2.pdf -> a pdf version of the paper of the project
 └── script.pbs
 ```
+
+## Execution 
 
 To run the script:
 ```bash
