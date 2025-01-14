@@ -7,12 +7,14 @@ For H1 (H1 Folder) :  [H1 (Implicit Parallelization and OpenMP)](#h1---implicit-
     - [Requirements](#requirements) <br>
     - [Project Structure](#project-structure) <br>
     - [Execution](#execution) <br>
+[You can find the H1 Paper here](H1/H1.pdf) <br>
     
 
 For H2 (H2 Folder) :  [H2 (OpenMP and MPI)](#h2---mpi-and-openmp) <br>
     - [Requirements](#requirements-1) <br>
     - [Project Structure](#project-structure-1) <br>
     - [Execution](#execution-1) <br>
+[You can find the H2 Paper here](H2/h2.pdf) <br>
 
 ***
 
