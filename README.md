@@ -14,7 +14,7 @@ For H2 (H2 Folder) :  [H2 (OpenMP and MPI)](#h2---mpi-and-openmp) <br>
     - [Requirements](#requirements-1) <br>
     - [Project Structure](#project-structure-1) <br>
     - [Execution](#execution-1) <br>
-[You can find the H2 Paper here](H2/h2.pdf) <br>
+[You can find the H2 Paper here](H2/H2.pdf) <br>
 
 ***
 
