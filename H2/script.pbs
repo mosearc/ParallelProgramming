@@ -1,0 +1,309 @@
+#!/bin/bash
+# Job name
+#PBS -N H2
+# Output files
+#PBS -o ./H2.o
+#PBS -e ./H2.e
+# Queue name
+#PBS -q short_cpuQ
+# Set the maximum wall time
+#PBS -l walltime=02:30:00
+# Number of nodes, cpus, mpi processors and amount of memory
+#PBS -l select=1:ncpus=96:mpiprocs=96:ompthreads=96:mem=1gb
+#PBS -M mose.arcaro@studenti.unitn.it
+#PBS -m aeb
+
+# Modules for python and MPI
+module load gcc91
+module load mpich-3.2.1--gcc-9.1.0
+module load python-3.7.2
+
+gcc() {
+    gcc-9.1.0 "$@"
+}
+gcc --version
+
+cd /home/mose.arcaro/H2
+
+touch info.txt
+
+# Print the name of the file that contains the list of the nodes assigned to the job and list all the nodes
+NODES=$(cat $PBS_NODEFILE)
+echo The running nodes are $NODES >> info.txt
+echo -e "\n" >> info.txt  # Add a blank line between nodes
+
+# Get the list of unique nodes assigned to the job
+NODES=$(sort -u $PBS_NODEFILE)
+echo The running nodes are $NODES >> info.txt
+echo -e "\n" >> info.txt  # Add a blank line between nodes
+
+# Loop through each node and get architecture information
+for NODE in $NODES; do
+    echo "Node: $NODE" >> info.txt
+    ssh $NODE "lscpu" >> info.txt
+    echo -e "\n" >> info.txt  # Add a blank line between nodes
+done
+
+# Select the working directory
+cd BaseVsAlltoallVsDatatype
+
+# the code should be previously compiled
+#mpicc code_mpi.c -o code.out
+
+# Run the code
+#mpirun -np 4 ./code.out
+# If you set the number of mpi processors, here it is enough to type
+# mpirun ./code.out
+
+#find the best mpi version vs seq (table)
+touch output.csv
+echo "Processes,Dim,CheckSym,MatTranspose,Version" > output.csv
+
+for (( k = 16; k <= 4096; k=k*2 )); do
+
+  gcc -o SEQ SEQ.c
+  for i in {1..5}
+  do
+    ./SEQ "$k"
+  done
+
+  mpicc MPI_Base.c -o MPI_Base
+  for (( m = 1; m <= 96; m++ )); do ########!
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPI_Base "$k" "$m"
+
+    done
+  done
+
+  mpicc MPI_All.c -o MPI_All
+  if (($k < 128)); then
+    for i in {1..5}
+    do
+      mpirun -np "$k" ./MPI_All "$k" "$k"
+
+    done
+  fi
+
+  mpicc MPI_DataT.c -o MPI_DataT
+  for (( m = 1; m <= 96; m++ )); do
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPI_DataT "$k" "$m"
+
+    done
+  done
+
+done
+
+python3 mean.py output.csv
+
+
+cd ..
+cd comp
+
+#comparison seq vs omp vs mpi (graph)
+touch outputC.csv
+echo "Threads/Proc,Dim,CheckSym,MatTranspose,Version" > outputC.csv
+
+for (( k = 16; k <= 4096; k=k*2 )); do
+
+  gcc -o SEQ SEQ.c
+  for i in {1..5}
+  do
+    ./SEQ "$k"
+  done
+
+  gcc -o OMP OMP.c -fopenmp
+  for m in {1..96}
+  do
+    for i in {1..5}
+    do
+      export OMP_NUM_THREADS="$m"; ./OMP "$k" "$m"
+    done
+  done
+
+  mpicc MPI_DataT.c -o MPI_DataT
+  for (( m = 1; m <= 96; m++ )); do
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPI_DataT "$k" "$m"
+
+    done
+  done
+
+done
+
+python3 mean.py outputC.csv
+python3 ses.py outputC_processed.csv
+
+cd Scaling
+
+touch outputSc.csv
+echo "Processes,Dim,CheckSym,MatTranspose,Version" > outputSc.csv
+
+mpicc MPI_DataT.c -o MPI_DataT
+gcc -o OMP OMP.c -fopenmp
+
+for (( k = 16; k <= 4096; k=k*2 )); do
+  m=1
+  z=$k
+  while [ $z -le 4096 ] && [ $m -le 96 ]
+  do
+
+    for i in {1..5}
+    do
+      export OMP_NUM_THREADS="$m"; ./OMP "$z" "$m"
+    done
+    m=$((m*2))
+    z=$((k*m))
+  done
+
+  m=1
+  z=$k
+  while [ $z -le 4096 ] && [ $m -le 96 ]
+  do
+
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPI_DataT "$z" "$m"
+    done
+    m=$((m*2))
+    z=$((k*m))
+  done
+done
+
+python3 mean.py outputSc.csv
+python3 scaling_script.py outputSc_processed.csv
+
+cd ..
+
+cd ..
+cd mpiBlock
+cd BlockComp
+
+#comparison blocked versions (table)
+touch outputBlock.csv
+echo "Processes,Dim,CheckSym,MatTranspose,Version" > outputBlock.csv
+
+for (( k = 16; k <= 4096; k=k*2 )); do
+
+  mpicc MPIB_Basic.c -o MPIB_Basic -lm
+  for (( m = 1; m <= 96; m++ )); do
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPIB_Basic "$k" "$m"
+
+    done
+  done
+
+  mpicc MPIB_DataTV.c -o MPIB_DataTV -lm
+  for (( m = 1; m <= 96; m++ )); do
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPIB_DataTV "$k" "$m"
+
+    done
+  done
+
+  mpicc MPIB_nvnd.c -o MPIB_nvnd -lm
+  for (( m = 1; m <= 96; m++ )); do
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPIB_nvnd "$k" "$m"
+
+    done
+  done
+
+  mpicc MPIB_onlyD.c -o MPIB_onlyD -lm
+  for (( m = 1; m <= 96; m++ )); do
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPIB_onlyD "$k" "$m"
+
+    done
+  done
+
+done
+
+python3 mean.py outputBlock.csv
+
+cd ..
+
+#comparison no blocked vs blockied (graph)
+touch outputBvNB.csv
+echo "Processes,Dim,CheckSym,MatTranspose,Version" > outputBvNB.csv
+
+for (( k = 16; k <= 4096; k=k*2 )); do
+
+  gcc -o SEQ SEQ.c
+  for i in {1..5}
+  do
+    ./SEQ "$k"
+  done
+
+  mpicc MPIB_DataTV.c -o MPIB_DataTV -lm
+  for (( m = 1; m <= 96; m++ )); do
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPIB_DataTV "$k" "$m"
+
+    done
+  done
+
+  mpicc MPI_DataT.c -o MPI_DataT
+  for (( m = 1; m <= 96; m++ )); do
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPI_DataT "$k" "$m"
+
+    done
+  done
+
+done
+
+python3 mean.py outputBvNB.csv
+python3 ses.py outputBvNB_processed.csv
+
+cd Scaling
+
+touch outputSc.csv
+echo "Processes,Dim,CheckSym,MatTranspose,Version" > outputSc.csv
+
+mpicc MPI_DataT.c -o MPI_DataT
+mpicc MPIB_DataTV.c -o MPIB_DataTV -lm
+
+for (( k = 16; k <= 4096; k=k*2 )); do
+  m=1
+  z=$k
+  while [ $z -le 4096 ] && [ $m -le 96 ]
+  do
+
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPI_DataT "$z" "$m"
+    done
+
+    m=$((m*2))
+    z=$((k*m))
+  done
+
+  m=1
+  z=$k
+  while [ $z -le 4096 ] && [ $m -le 96 ]
+  do
+
+    for i in {1..5}
+    do
+      mpirun -np "$m" ./MPIB_DataTV "$z" "$m"
+    done
+
+    m=$((m*2))
+    z=$((k*m))
+  done
+done
+
+python3 mean.py outputSc.csv
+python3 scaling_script.py outputSc_processed.csv
+
+

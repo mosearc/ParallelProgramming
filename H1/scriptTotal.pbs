@@ -14,7 +14,7 @@ gcc() {
 }
 gcc --version
 # Select the working directory
-cd /home/mose.arcaro/Total/64vs32vs16
+cd /home/mose.arcaro/H1/64vs32vs16
 
 touch output8.csv
 echo "Threads,Dim,CheckSym,MatTranspose,Version" > output8.csv
