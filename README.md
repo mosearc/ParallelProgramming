@@ -105,7 +105,7 @@ For bandwidth calculation, formulas must then be applied manually.
 The folder contain the c codes and some python scripts to simplify and automatize the data elaboration and procurement.
 Inside each folder there is a "Data" folder containing all related data: *_processed.csv contains the data for Transposition and Check symmetry; *_processed_SpeeEff.csv, if present, collects data related to Speedup, Efficiency and Scaling.
 In some folders there is: a "Charts" folder with all the graphs, a "Scaling" and a "Speedup&Efficiency" folder that contain the performance data and graphs of it
-In mpiBlock folder we can find the algorithms that divide the matrix in block, sent the blocks among processes that transpose it and sends back to the root process
+In mpiBlock folder we can find the algorithms that divide the matrix in block, sent the blocks among processors that transpose it and sends back to the root process
 
 ## Requirements
 
@@ -156,7 +156,7 @@ In Scaling folder, if present, a new *_processed_with_scaling.csv will be create
 
 
 ### Manual Reproduction
-If you want reproduce some single codes, trying different threads/processes or compiling flags:
+If you want reproduce some single codes, trying different threads/processors or compiling flags:
 
 Load the Modules Required
 ```bash
@@ -190,7 +190,7 @@ mpicc *.c -o <NAME>
 ```
 To Run the Code (MPI)
 ```bash
-mpirun -np <NUM_PROCESSES> ./<NAME> <MATRIX_DIM> <NUM_PROCESSES>
+mpirun -np <NUM_PROCESSORS> ./<NAME> <MATRIX_DIM> <NUM_PROCESSORS>
 ```
 
 
