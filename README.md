@@ -123,9 +123,9 @@ H2/
 |       ├── MPI_Base.c -> represent an MPI version using only send and recieve
 |       └── MPI_DataT.c -> represent an MPI version using MPI Datatypes
 ├── comp/ -> comparison between MPI and OMP and SEQ best versions
-|       ├── OMP
-|       ├── MPI 
-|       └── SEQ
+|       ├── OMP -> OpenMP version
+|       ├── MPI -> MPI version
+|       └── SEQ -> Sequential version
 ├── mpiBlock/ -> comparison between the block dividing MPI version (parallel and sequential) vs normal MPI version
 |       └── BlockComp/ -> comparison between different MPI block dividing versions to find the best
 |              ├── MPIB_Basic.c -> basic version 
@@ -153,7 +153,50 @@ In each folder, a *_processed.csv file will be created with all data
 and, if is a comparison folder, a new *_processed_SpeeEff.csv file will be created containing Speedup and Efficiency data.
 In Scaling folder, if present, a new *_processed_with_scaling.csv will be created containing Scaling data
 
+
+
+### Manual Reproduction
+If you want reproduce some single codes, trying different threads/processes or compiling flags:
+
+Load the Modules Required
+```bash
+module load gcc91
+module load mpich-3.2.1--gcc-9.1.0
+```
+
+Build the Code (Sequential)
+```bash
+gcc-9.1.0 -o <NAME> *.c
+```
+To Run the Code (Sequential)
+```bash
+./<NAME> <MATRIX_DIM>
+```
+
+
+Build the Code (OpenMP)
+```bash
+gcc-9.1.0 -o <NAME> *.c -fopenmp
+```
+To Run the Code (OpenMP)
+```bash
+export OMP_NUM_THREADS=<NUM_THREADS>; ./<NAME> <MATRIX_DIM> <NUM_THREADS>
+```
+
+
+Build the Code (MPI)
+```bash
+mpicc *.c -o <NAME>
+```
+To Run the Code (MPI)
+```bash
+mpirun -np <NUM_PROCESSES> ./<NAME> <MATRIX_DIM> <NUM_PROCESSES>
+```
+
+
 -----
+
+### Graphs
 
 Graphs available only for "comp" and "mpiBlock" folders
 
